@@ -421,7 +421,7 @@ function updateTimelineGraphics() {
 
 
 	$(".timeline-beat").css("width", beatPixels + "px");
-
+	$("#track-elements-right-inner").css("width", $("#timeline").width())
 	let grayedOut = document.getElementById("grayed-out");
 	grayedOut.style.left = Tone.Time(maxTime).valueOf() * Tone.Transport.bpm.value / 60 * beatPixels + parseFloat($("#timeline").css('padding-left')) + "px";
 	grayedOut.style.width = "calc(100% - " + grayedOut.style.left + ")";
@@ -466,7 +466,7 @@ function updatePlayhead() {
 	let playheadBar = document.getElementById("playhead-bar");
 // 	console.log(parseFloat($("#track-elements-right").scrollLeft()));
 	playhead.style.left = Tone.Time(Tone.Transport.position).valueOf() * Tone.Transport.bpm.value / 60 * beatPixels + parseFloat($("#timeline").css('padding-left')) + "px";
-	playheadBar.style.height = $( "#track-elements-right" ).height() + "px";
+	playheadBar.style.height = $( "#track-elements-right").height() + $( "#timeline").height() + "px";
 }
 
 function playPause() {

@@ -75,9 +75,13 @@ html, body {
 }
 
 #track-elements-right {
-  flex: 1;
+  /* position: relative; */
   overflow: auto;
+}
+
+#track-elements-right-inner {
 	position: relative;
+  /* width: 10000px; */
 }
 
 #track-elements-left {
@@ -89,10 +93,8 @@ html, body {
 #timeline {
 	background-color: white;
 	border-bottom: 1px solid #e6e6e6;
-	position: -webkit-sticky !important;
-	position: sticky !important;
 	padding-left: 8px;
-	top: 0;
+  position: relative;
 	z-index: 10;
 }
 
@@ -145,14 +147,10 @@ html, body {
 }
 
 
-#tracks-displays {
-	flex-grow: 1;
-	height: fit-content;
-	overflow: scroll;
-}
-
-#tracks-displays > div {
-	padding: 8px;
+#track-displays {
+	/* flex-grow: 1; */
+	/* width: fit-content; */
+	/* overflow: scroll; */
 }
 
 .blocks-track-name {
