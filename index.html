@@ -5,26 +5,26 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    
+
 	<link rel='stylesheet' href='style.css'/>
 	<link href="https://fonts.googleapis.com/css?family=Roboto:300,400&display=swap" rel="stylesheet">
 
 	<script src="https://raw.githack.com/SortableJS/Sortable/master/Sortable.js"></script>
 	<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/13.0.1/Tone.min.js"></script>
-	
+
 	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css"/>
-	
+
 	<script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
-	
+
 	<script src='coolhelpers.js'></script>
 	<script src='note.js'></script>
 	<script src='block.js'></script>
 	<script src='track.js'></script>
 	<script src='script.js'></script>
-	
-	
+
+
 
 </head>
 <body>
@@ -38,38 +38,37 @@
 				<span id="position">0:0:0</span>
 				<span>Tempo: <input id="tempo-number" type="number" value="120"><input type="range" min="1" max="300" value="120" id="tempo-range"></span>
 		   	</div>
-		    
+
 		</div>
-	
+
 		<div id="tracks-container">
 			<div id="beatPixels-range-wrapper"><input type="range" min="7" max="300" value="80" id="beatPixels-range"></div>
+      <div id="tracks-top" class="flex-container">
+        <div class="track-part left" id="tracks-top-left">
+          <span class="button" id="new-track">+ new track</span>
+        </div>
+        <div class="flex-container" id="timeline">
+          <div id="playhead">
+            <div id="playhead-head"></div>
+            <div id="playhead-bar"></div>
+          </div>
+        </div>
+      </div>
+      <div id="track-elements-wrapper">
     		<div id="track-elements" class="flex-container">
  				<div id="track-elements-left">
- 					<div class="track-part left" id="tracks-top-left">
-		    			<span class="button" id="new-track">+ new track</span>
-	    			</div>
-	    			<div id="track-headers">
-	    				
-	    			</div>
+	    		<div id="track-headers">
+
+	    		</div>
  				</div>
  				<div id="track-elements-right">
- 				
- 					<div id="track-elements-right-wrapper">
- 						<div id="grayed-out"></div>
- 						<div class="flex-container" id="timeline">
- 							<div id="playhead">
-					 			<div id="playhead-head"></div>
-					 			<div id="playhead-bar"></div>
-					 		</div>
- 						</div>
- 						<div id="track-displays">
-				 		</div>
-				 	
-				 	</div>
-				 	
+          <div id="grayed-out"></div>
+          <div id="track-displays">
+          </div>
  				</div>
     		</div>
+      </div>
 		</div>
-    </div>    
+    </div>
 </body>
 </html>

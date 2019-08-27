@@ -39,23 +39,10 @@ html, body {
 	flex-direction: column;
 }
 
-/* 
-#blocks {
-	min-width: fit-content;
-}
-
-#blocks > div {
-	padding: 8px;
-}
-
-#blocks-top {
-	border-bottom: 1px solid #e6e6e6;
-}
- */
-
 #tracks-container {
-	overflow: auto;
-	flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 	position: relative;
 }
 
@@ -75,24 +62,28 @@ html, body {
 	width: 100px;
 }
 
+#tracks-top {
+  /* z-index: 88; */
+}
+
+#track-elements-wrapper {
+	overflow: auto;
+}
+
 #track-elements {
-	width: fit-content;
+	overflow: auto;
 }
 
 #track-elements-right {
+  flex: 1;
+  overflow: auto;
 	position: relative;
 }
 
 #track-elements-left {
-	position: -webkit-sticky;
-	position: sticky;
-	left: 0;
-	z-index: 15;
+  flex-shrink: 0;
 	width: 150px;
-}
-
-#track-elements-right-wrapper {	
-	width: fit-content;
+  z-index: 15;
 }
 
 #timeline {
@@ -127,7 +118,7 @@ html, body {
 #playhead {
 	height: 100%;
 	opacity: 0.5;
-	position: absolute;	
+	position: absolute;
 	bottom: 0;
 	left: 200px;
 	z-index: 10;
@@ -177,18 +168,18 @@ html, body {
 .button:hover {
 	background-color: #e6e6e6;
 	color: black;
-	cursor: pointer;	
+	cursor: pointer;
 }
 
 .timeline-beat {
 	box-sizing: border-box;
 	flex-shrink: 0;
 	width: 100px;
-	
+
 	-webkit-user-select: none;  /* Chrome all / Safari all */
 	-moz-user-select: none;     /* Firefox all */
 	-ms-user-select: none;      /* IE 10+ */
-	user-select: none;          /* Likely future */    
+	user-select: none;          /* Likely future */
 }
 
 .timeline-beat > div {
@@ -229,6 +220,7 @@ html, body {
 	position: -webkit-sticky;
 	position: sticky;
 	left: 0;
+  width: 150px;
 	z-index: 3;
 }
 
@@ -245,7 +237,7 @@ html, body {
 	height: 100px;
 }
 
-/* 
+/*
 .track-header:hover .handle {
 	color: initial;
 }
@@ -268,11 +260,11 @@ html, body {
 
 .track-header-text {
 	padding: 8px;
-	
+
 	-webkit-user-select: none;  /* Chrome all / Safari all */
 	-moz-user-select: none;     /* Firefox all */
 	-ms-user-select: none;      /* IE 10+ */
-	user-select: none;          /* Likely future */    
+	user-select: none;          /* Likely future */
 }
 
 .track-display {
@@ -300,11 +292,11 @@ html, body {
 	flex-direction: column;
 	height: 100%;
 	overflow: hidden;
-	
+
 	position: relative;
 }
 
-/* 
+/*
 .track-block:hover {
 	background-color: #4dccff;
 }

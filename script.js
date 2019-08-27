@@ -5,33 +5,33 @@ var beatPixels = 100;
 
 window.onload = function() {
 	console.log("flexion started");
-	
 
-	
+
+
 	document.getElementById("tempo-number").addEventListener("change", function() {
 		setTempo(this.value);
 	});
 	document.getElementById("tempo-range").addEventListener("input", function() {
 		setTempo(this.value);
 	});
-	
+
 	document.getElementById("beatPixels-range").addEventListener("input", function() {
 		beatPixels = this.value;
 		updateTimelineGraphics();
 		updateBlockGraphics();
 	});
-	
-	
+
+
 	document.getElementById("play-pause").addEventListener("click", function() {
 		playPause();
 	});
-	
+
 	document.getElementById("beginning").addEventListener("click", function() {
 		Tone.Transport.position = "0:0:0";
 		document.getElementById("position").innerHTML = Tone.Transport.position;
 		updatePlayhead();
 	});
-	
+
 	Sortable.create(document.getElementById("track-headers"), {
 		animation: 200,
 		direction: "vertical",
@@ -45,39 +45,39 @@ window.onload = function() {
 			updateBlockGraphics();
 		},
 	});
-	
+
 	let timeline = document.getElementById("timeline");
 	for (i = 0; i < 100; i++) {
 		let beat = document.createElement("div")
 		beat.classList.add("timeline-beat");
-		
+
 		let beatText = document.createElement("div");
 		beatText.innerHTML = Math.floor(i/4) + (i % 4 == 0 ? "" : ("." + i % 4));
 		beat.appendChild(beatText);
 		// if (i % 4 == 0) {
-// 			
+//
 // 		}
 		timeline.appendChild(beat);
 	}
-	
+
 	let playhead = document.getElementById("playhead");
 	timeline.addEventListener("click", function(e) {
 		console.log("click");
 		updatePosition(e);
 	});
-	
+
 	document.getElementById("new-track").addEventListener("click", function() {
 		newEmptyTrack();
 	});
-	
+
 	document.getElementById("new-beat").addEventListener("click", function() {
 		newTrapBeat();
 	});
-	
+
 // 	newEmptyTrack();
 // 	newHihatTrack();
 
-	
+
 	updateTransport();
 }
 
@@ -115,7 +115,7 @@ function new808Track() {
 	instrument.toMaster();
 	let track = new Track(instrument);
 	tracks.push(track);
-	
+
 	let notes = [];
 	for (let i = 0; i < 16; i++) {
 		if (i % 16 == 0 || Math.random() < 0.3) {
@@ -123,9 +123,9 @@ function new808Track() {
 		}
 	}
 	let block = new Block("2:0:0", notes);
-	let blocks = [block];		
+	let blocks = [block];
 	track.blocks = blocks;
-	
+
 	createTrackElements(track, "808");
 }
 
@@ -143,16 +143,16 @@ function newDrumTrack() {
 	instrument.toMaster();
 	let track = new Track(instrument);
 	tracks.push(track);
-	
+
 	let notes = [];
 	for (let i = 0; i < 8; i++) {
 		notes.push(new Note(72, "0:0:" + 2*i, "8n"));
 	}
 	notes.push(new Note(59, "0:2", "8n"));
 	let block = new Block("1:0:0", notes);
-	let blocks = [block, block.copy()];		
+	let blocks = [block, block.copy()];
 	track.blocks = blocks;
-	
+
 	createTrackElements(track, "Drum Sampler");
 }
 
@@ -161,21 +161,21 @@ function newEmptyTrack() {
 	if (name == "" || name == null) {
 		name = "Untitled Track";
 	}
-		
+
 	let instrument = new Tone.Synth;
 	instrument.toMaster();
 	let track = new Track(instrument);
 	tracks.push(track);
-	
+
 	let notes = [];
 	for (let i = 0; i < 4; i++) {
 		notes.push(new Note(Math.floor(Math.random() * 20 + 50), "0:0:" + 4*i, "4n"));
 	}
 	let block = new Block("1:0:0", notes);
-	
-	let blocks = [block];		
+
+	let blocks = [block];
 	track.blocks = blocks;
-	
+
 	createTrackElements(track, name);
 }
 
@@ -185,55 +185,56 @@ function createTrackElements(track, name = "Untitled Track") {
 	trackHeader.classList.add("flex-container");
 	trackHeader.classList.add("left");
 	document.getElementById("track-headers").appendChild(trackHeader);
-		
+
 	let trackHeaderHandle = document.createElement("div")
 	trackHeaderHandle.classList.add("handle");
 	trackHeaderHandle.innerHTML = "⋮";
 // 	trackHeaderHandle.innerHTML = "↕";
 	trackHeader.appendChild(trackHeaderHandle);
-		
+
 	let trackHeaderText = document.createElement("div")
 	trackHeaderText.classList.add("track-header-text");
 	trackHeaderText.innerHTML = name;
 	trackHeader.appendChild(trackHeaderText);
-	
+
 	let trackDisplay = document.createElement("div");
 	trackDisplay.classList.add("track-display");
 	trackDisplay.classList.add("track-part");
 	document.getElementById("track-displays").appendChild(trackDisplay);
-	
+
 	track.blocks.forEach(function(block) {
 		let blockContainer = document.createElement("div");
 		blockContainer.classList.add("track-block-container");
 		trackDisplay.appendChild(blockContainer);
-		
+
 		let blockElement = document.createElement("div");
 		blockElement.classList.add("track-block");
 		blockContainer.appendChild(blockElement);
-		
+
 		let blockText = document.createElement("div");
 		blockText.classList.add("track-block-text");
 		blockElement.appendChild(blockText);
-		
+
 		let blockCanvasWrapper = document.createElement("div");
 		blockCanvasWrapper.classList.add("track-block-canvas-wrapper");
 		blockElement.appendChild(blockCanvasWrapper);
-		
+
 		let blockCanvas = document.createElement("canvas");
 		blockCanvas.width = 1000;
 		blockCanvas.height = 500;
 		blockCanvasWrapper.appendChild(blockCanvas);
 	});
-		
+
 	sortableTrackDisplay(trackDisplay);
-		
-	let scrollAmount = $("#track-elements").height() - $("#tracks-container").height();
+
+	let scrollAmount = $("#track-elements").height() - $("#track-elements-wrapper").height();
+	console.log(scrollAmount);
 	if (scrollAmount > 0) {
-		$("#tracks-container").animate({
+		$("#track-elements-wrapper").animate({
 			scrollTop: scrollAmount
 		}, 200);
 	}
-	
+
 // 	updateBlockGraphics();
 	updateTransport();
 }
@@ -269,27 +270,27 @@ function moveItemBetweenArrays(oldArray, oldIndex, newArray, newIndex) {
 }
 
 function updateBlockGraphics() {
-	
-	
+
+
 	$(".track-block-container").on("click touchstart", function(e){ //click touchstart
 		console.log($(this));
 		console.log($(this).hasClass("selected"));
 		console.log(e.type);
 		e.stopImmediatePropagation();
 		e.stopPropagation(); e.preventDefault();
-		
+
 		$(".track-block-container").not($(this)).removeClass("selected");
 		console.log($(this).hasClass("selected"));
 		$(this).toggleClass("selected");
 	});
-	
+
 	$("#track-displays").on("click touchstart", function(evt){
 		console.log("should deselect");
 		evt.stopImmediatePropagation();
 		$(".track-block-container").not($(this)).removeClass("selected");
 		$(this).toggleClass("selected");
 	});
-	
+
 	$(".track-display").each(function(i) {
 		$(this).children().each(function(j) {
 			let blockContainer = $(this)[0];
@@ -297,19 +298,19 @@ function updateBlockGraphics() {
 			let blockText = $(this).find(".track-block-text")[0];
 			let blockCanvas = $(this).find("canvas")[0];
 			let ctx = blockCanvas.getContext("2d")
-			
+
 			ctx.clearRect(0, 0, blockCanvas.width, blockCanvas.height);
-			
+
 			let scalar = 4;
 			blockCanvas.width = parseFloat($(this).find("canvas").css("width")) * scalar;
 			blockCanvas.height = parseFloat($(this).find("canvas").css("height")) * scalar;
 			ctx.strokeStyle = "#0092cc";
 			ctx.lineWidth = blockCanvas.height / 16;
-			
+
 			let block = tracks[i].blocks[j];
 
 			blockContainer.style.width = Tone.Time(block.duration).valueOf() * Tone.Transport.bpm.value / 60 * beatPixels + "px";
-			
+
 			let minPitch = 128;
 			let maxPitch = 0;
 			block.notes.forEach(function(note) {
@@ -322,12 +323,12 @@ function updateBlockGraphics() {
 			});
 			minPitch -= 1;
 			maxPitch += 1;
-			
-			
+
+
 			let text = "";
 			block.notes.forEach(function(note) {
 				text += note.pitch + " ";
-				
+
 				let notePosition = fromBBStoBeats(note.position) / fromBBStoBeats(block.duration);
 				let noteDuration = fromBBStoBeats(note.duration) / fromBBStoBeats(block.duration);
 				ctx.beginPath();
@@ -362,8 +363,8 @@ function updateTransport() {
 							let duration = note.duration;
 
 // 							console.log("pitch: " + pitch + ", position: " + position);
-							
-							Tone.Transport.schedule(function(time) { 
+
+							Tone.Transport.schedule(function(time) {
 								track.instrument.triggerAttackRelease(Tone.Frequency(pitch, "midi").toNote(), duration);
 							}, position);
 						});
@@ -376,14 +377,14 @@ function updateTransport() {
 			}
 		});
 	}
-	
+
 	Tone.Transport.scheduleRepeat(function(time) {
 		repeat(time);
 	}, 0.01);
 
 	updateTimelineGraphics();
 	updateBlockGraphics();
-	
+
 	console.log("updated with new maxTime = " + maxTime);
 }
 
@@ -408,7 +409,7 @@ function updateTimelineGraphics() {
 			$(".timeline-beat:nth-of-type(" + (i+2) + ")").addClass("off");
 		}
 	});
-	
+
 	timeline.children(".timeline-beat").children("div").css("display", "none");
 	if (beatPixels < 17) {
 		timeline.children(".timeline-beat:nth-of-type(8n+2)").children("div").css("display", "block");
@@ -417,10 +418,10 @@ function updateTimelineGraphics() {
 	} else {
 		timeline.children(".timeline-beat").children("div").css("display", "block");
 	}
-	
-	
+
+
 	$(".timeline-beat").css("width", beatPixels + "px");
-	
+
 	let grayedOut = document.getElementById("grayed-out");
 	grayedOut.style.left = Tone.Time(maxTime).valueOf() * Tone.Transport.bpm.value / 60 * beatPixels + parseFloat($("#timeline").css('padding-left')) + "px";
 	grayedOut.style.width = "calc(100% - " + grayedOut.style.left + ")";
@@ -455,7 +456,7 @@ function updatePosition(e) {
 			Tone.Transport.position = maxTime;
 		}
 	}
-	
+
 	document.getElementById("position").innerHTML = Tone.Transport.position;
 	updatePlayhead();
 }
@@ -470,7 +471,7 @@ function updatePlayhead() {
 
 function playPause() {
 // 	updateTransport();
-// 	Tone.context.resume();	
+// 	Tone.context.resume();
 	if (Tone.context.state !== 'running') {
         Tone.context.resume();
     }
