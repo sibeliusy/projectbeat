@@ -10,7 +10,7 @@
     scrollbar-width: none;  // Firefox
 }
 
-.hidden-scrollbar::-webkit-scrollbar { 
+.hidden-scrollbar::-webkit-scrollbar {
     display: none;  // Safari and Chrome
 }
 
@@ -101,14 +101,13 @@ html, body {
 }
 
 #timeline-wrapper {
-  /* overflow: hidden; */
+  background-color: white;
+  border-bottom: 1px solid #e6e6e6;
   overflow: auto;
   padding-left: 8px;
 }
 
 #timeline {
-	background-color: white;
-	border-bottom: 1px solid #e6e6e6;
   position: relative;
   width: fit-content;
 	z-index: 10;
