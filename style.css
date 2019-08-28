@@ -52,6 +52,7 @@ html, body {
 #tracks-container {
   display: flex;
   flex-direction: column;
+  flex: 1;
   overflow: hidden;
 	position: relative;
 }
@@ -77,6 +78,7 @@ html, body {
 }
 
 #track-elements-wrapper {
+  flex: 1;
 	overflow: auto;
 }
 
