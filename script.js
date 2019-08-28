@@ -257,8 +257,6 @@ function sortableTrackDisplay(trackDisplay) {
 	Sortable.create(trackDisplay, {
 		animation: 200,
 		group: "blocks",
-// 		touchStartThreshold: 100,
-// 		multiDrag: true,
 		onEnd: function (/**Event*/evt) {
 			moveItemBetweenArrays(tracks[$(evt.from).index()].blocks, evt.oldIndex, tracks[$(evt.to).index()].blocks, evt.newIndex);
 			updateTransport();
@@ -289,7 +287,7 @@ function ignorableScrollLeft(element, x) {
 
 function updateBlockGraphics() {
 
-	$(".track-block-container").on("click touchstart", function(e){ //click touchstart
+	$(".track-block-container").on("click", function(e){
 		console.log($(this));
 		console.log($(this).hasClass("selected"));
 		console.log(e.type);
@@ -298,9 +296,18 @@ function updateBlockGraphics() {
 		e.preventDefault();
 
 		$(".track-block-container").not($(this)).removeClass("selected");
-		console.log($(this).hasClass("selected"));
 		$(this).toggleClass("selected");
 	});
+
+	$(".track-block-container").on("dragstart touchstart", function(e){
+		// e.stopImmediatePropagation();
+		// e.stopPropagation();
+		// e.preventDefault();
+		$(".track-block-container").not($(this)).removeClass("selected");
+		$(this).addClass("selected");
+	});
+
+
 
 	$("#track-displays").on("click touchstart", function(evt){
 		console.log("should deselect");
