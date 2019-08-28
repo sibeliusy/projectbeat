@@ -2,11 +2,25 @@ console.clear();
 var tracks = [];
 var maxTime;
 var beatPixels = 100;
+var ignoreScrollEvents = false;
 
 window.onload = function() {
 	console.log("flexion started");
 
-
+	let trackElementsRight = document.getElementById("track-elements-right")
+	let timelineWrapper = document.getElementById("timeline-wrapper");
+	trackElementsRight.addEventListener("scroll", function() {
+		var ignore = ignoreScrollEvents;
+	  ignoreScrollEvents = false;
+	  if (ignore) return false;
+		ignorableScrollLeft(timelineWrapper, this.scrollLeft);
+	});
+	timelineWrapper.addEventListener("scroll", function() {
+		var ignore = ignoreScrollEvents;
+	  ignoreScrollEvents = false;
+	  if (ignore) return false;
+		ignorableScrollLeft(trackElementsRight, this.scrollLeft);
+	});
 
 	document.getElementById("tempo-number").addEventListener("change", function() {
 		setTempo(this.value);
@@ -259,25 +273,29 @@ function swapDivs(div1, div2) {
     div2.replaceWith(tdiv1);
 }
 
-Array.prototype.move = function (from, to) {
-  this.splice(to, 0, this.splice(from, 1)[0]);
-};
-
 function moveItemBetweenArrays(oldArray, oldIndex, newArray, newIndex) {
 	let movingItem = oldArray[oldIndex]
 	oldArray.splice(oldIndex, 1);
 	newArray.splice(newIndex, 0, movingItem);
 }
 
-function updateBlockGraphics() {
+function ignorableScrollLeft(element, x) {
+	if ( element.scrollLeft != x )
+  {
+    ignoreScrollEvents = true;
+    element.scrollLeft = x;
+  }
+}
 
+function updateBlockGraphics() {
 
 	$(".track-block-container").on("click touchstart", function(e){ //click touchstart
 		console.log($(this));
 		console.log($(this).hasClass("selected"));
 		console.log(e.type);
 		e.stopImmediatePropagation();
-		e.stopPropagation(); e.preventDefault();
+		e.stopPropagation();
+		e.preventDefault();
 
 		$(".track-block-container").not($(this)).removeClass("selected");
 		console.log($(this).hasClass("selected"));
@@ -423,7 +441,7 @@ function updateTimelineGraphics() {
 	$(".timeline-beat").css("width", beatPixels + "px");
 	$("#track-elements-right-inner").css("width", $("#timeline").width())
 	let grayedOut = document.getElementById("grayed-out");
-	grayedOut.style.left = Tone.Time(maxTime).valueOf() * Tone.Transport.bpm.value / 60 * beatPixels + parseFloat($("#timeline").css('padding-left')) + "px";
+	grayedOut.style.left = Tone.Time(maxTime).valueOf() * Tone.Transport.bpm.value / 60 * beatPixels + parseFloat($("#timeline-wrapper").css('padding-left')) + "px";
 	grayedOut.style.width = "calc(100% - " + grayedOut.style.left + ")";
 }
 
@@ -449,9 +467,9 @@ function repeat(time) {
 function updatePosition(e) {
 	console.log(e.type);
 	if (e.type == "drag") {
-		Tone.Transport.position = "0:" + ((    (parseFloat(($("#playhead").css('left'))))    - parseFloat($("#timeline").css('padding-left'))) / beatPixels) + ":0";
+		Tone.Transport.position = "0:" + ((    (parseFloat(($("#playhead").css('left'))))) / beatPixels) + ":0";
 	} else if (e.type == "click" || e.type == "dragstop") {
-		Tone.Transport.position = "0:" + Math.round((e.clientX - parseFloat($("#timeline").css('padding-left')) - parseFloat($("#tracks-top-left").css('width')) + parseFloat($("#tracks-container").scrollLeft())) / beatPixels) + ":0";
+		Tone.Transport.position = "0:" + Math.round((e.clientX - parseFloat($("#timeline-wrapper").css('padding-left')) - parseFloat($("#tracks-top-left").css('width')) + parseFloat($("#track-elements-right").scrollLeft())) / beatPixels) + ":0";
 		if (Tone.Time(Tone.Transport.position).valueOf() > Tone.Time(maxTime).valueOf()) {
 			Tone.Transport.position = maxTime;
 		}
