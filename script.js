@@ -299,7 +299,7 @@ function updateBlockGraphics() {
 	// 	$(this).toggleClass("selected");
 	// });
 
-	$(".track-block-container").on("click dragstart touchstart", function(e){
+	$(".track-block-container").on("click touchstart dragstart", function(e){
 		if (e.type == "touchstart" || e.type == "click") {
 			e.stopImmediatePropagation();
 			e.stopPropagation();
@@ -317,7 +317,6 @@ function updateBlockGraphics() {
 		$(this).toggleClass("selected");
 	});
 
-	
 
 	$(".track-display").each(function(i) {
 		$(this).children().each(function(j) {
