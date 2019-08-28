@@ -287,34 +287,36 @@ function ignorableScrollLeft(element, x) {
 
 function updateBlockGraphics() {
 
-	$(".track-block-container").on("click", function(e){
-		console.log($(this));
-		console.log($(this).hasClass("selected"));
+	// $(".track-block-container").on("click", function(e){
+	// 	console.log($(this));
+	// 	console.log($(this).hasClass("selected"));
+	// 	console.log(e.type);
+	// 	e.stopImmediatePropagation();
+	// 	e.stopPropagation();
+	// 	e.preventDefault();
+	//
+	// 	$(".track-block-container").not($(this)).removeClass("selected");
+	// 	$(this).toggleClass("selected");
+	// });
+
+	$(".track-block-container").on("click touchstart dragstart", function(e){
+		if (e.type == "touchstart" || e.type == "click") {
+			e.stopImmediatePropagation();
+			e.stopPropagation();
+			e.preventDefault();
+		}
 		console.log(e.type);
-		e.stopImmediatePropagation();
-		e.stopPropagation();
-		e.preventDefault();
-
-		$(".track-block-container").not($(this)).removeClass("selected");
-		$(this).toggleClass("selected");
-	});
-
-	$(".track-block-container").on("dragstart touchstart", function(e){
-		// e.stopImmediatePropagation();
-		// e.stopPropagation();
-		// e.preventDefault();
 		$(".track-block-container").not($(this)).removeClass("selected");
 		$(this).addClass("selected");
 	});
 
-
-
-	$("#track-displays").on("click touchstart", function(evt){
+	$("#track-elements-wrapper").on("click touchstart", function(evt){
 		console.log("should deselect");
 		evt.stopImmediatePropagation();
 		$(".track-block-container").not($(this)).removeClass("selected");
 		$(this).toggleClass("selected");
 	});
+
 
 	$(".track-display").each(function(i) {
 		$(this).children().each(function(j) {
