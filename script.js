@@ -32,7 +32,7 @@ window.onload = function() {
 	document.getElementById("beatPixels-range").addEventListener("input", function() {
 		beatPixels = this.value;
 		updateTimelineGraphics();
-		updateBlockGraphics();
+		// updateBlockGraphics();
 	});
 
 
@@ -43,7 +43,6 @@ window.onload = function() {
 	document.getElementById("beginning").addEventListener("click", function() {
 		Tone.Transport.position = "0:0:0";
 		document.getElementById("position").innerHTML = Tone.Transport.position;
-		updatePlayhead();
 	});
 
 	Sortable.create(document.getElementById("track-headers"), {
@@ -68,13 +67,9 @@ window.onload = function() {
 		let beatText = document.createElement("div");
 		beatText.innerHTML = Math.floor(i/4) + (i % 4 == 0 ? "" : ("." + i % 4));
 		beat.appendChild(beatText);
-		// if (i % 4 == 0) {
-//
-// 		}
 		timeline.appendChild(beat);
 	}
 
-	let playhead = document.getElementById("playhead");
 	timeline.addEventListener("click", function(e) {
 		console.log("click");
 		updatePosition(e);
@@ -95,9 +90,9 @@ window.onload = function() {
 	updateTransport();
 }
 
-$( window ).resize(function() {
-	updatePlayhead();
-});
+// $( window ).resize(function() {
+// 	updatePlayhead();
+// });
 
 $(window).keypress(function (e) {
   if (e.key === ' ' || e.key === 'Spacebar') {
@@ -145,15 +140,13 @@ function new808Track() {
 
 function newDrumTrack() {
 	let instrument = new Tone.Sampler({
-// 		"72" : "https://cdn-13.anonfile.com/l2q9ld42n5/ce75658f-1566884432/hihat.wav",
-// 		"60" : "https://cdn-17.anonfile.com/kfqalc4dne/4b954d9a-1566884374/snare.wav",
-// 		"59" : "https://cdn-11.anonfile.com/j1q6l249n4/e36aa229-1566884452/clap.wav"
-
 		"72" : "sounds/hihat.wav",
 		"60" : "sounds/snare.wav",
 		"59" : "sounds/clap.wav"
 	});
-// 	let instrument = new Tone.PolySynth();
+	// let instrument = new Tone.PolySynth();
+
+
 	instrument.toMaster();
 	let track = new Track(instrument);
 	tracks.push(track);
@@ -249,7 +242,7 @@ function createTrackElements(track, name = "Untitled Track") {
 		}, 200);
 	}
 
-// 	updateBlockGraphics();
+	updateBlockGraphics();
 	updateTransport();
 }
 
@@ -286,18 +279,6 @@ function ignorableScrollLeft(element, x) {
 }
 
 function updateBlockGraphics() {
-
-	// $(".track-block-container").on("click", function(e){
-	// 	console.log($(this));
-	// 	console.log($(this).hasClass("selected"));
-	// 	console.log(e.type);
-	// 	e.stopImmediatePropagation();
-	// 	e.stopPropagation();
-	// 	e.preventDefault();
-	//
-	// 	$(".track-block-container").not($(this)).removeClass("selected");
-	// 	$(this).toggleClass("selected");
-	// });
 
 	$(".track-block-container").on("click touchstart dragstart", function(e){
 		if (e.type == "touchstart" || e.type == "click") {
@@ -392,7 +373,7 @@ function updateTransport() {
 // 							console.log("pitch: " + pitch + ", position: " + position);
 
 							Tone.Transport.schedule(function(time) {
-								track.instrument.triggerAttackRelease(Tone.Frequency(pitch, "midi").toNote(), duration);
+								track.instrument.triggerAttackRelease(Tone.Frequency(pitch, "midi").toNote(), duration, time);
 							}, position);
 						});
 					}
@@ -405,43 +386,49 @@ function updateTransport() {
 		});
 	}
 
-	Tone.Transport.scheduleRepeat(function(time) {
-		repeat(time);
-	}, 0.01);
+	window.requestAnimationFrame(redraw);
 
 	updateTimelineGraphics();
-	updateBlockGraphics();
+	// updateBlockGraphics();
 
 	console.log("updated with new maxTime = " + maxTime);
 }
 
 function updateTimelineGraphics() {
-	updatePlayhead();
+	updateBlockGraphics();
 	let timeline = $("#timeline");
 	timeline.children(".timeline-beat").each(function(i) {
-		if (i < fromBBStoBeats(maxTime)) {
-			$(".timeline-beat:nth-of-type(" + (i+2) + ")").removeClass("off");
+		let beat = $(".timeline-beat").eq(i);
+		if (i >= fromBBStoBeats(Tone.Transport.loopStart) && i < fromBBStoBeats(Tone.Transport.loopEnd)) {
+			beat.addClass("loop");
 			Tone.Transport.schedule(function(time) {
 				Tone.Draw.schedule(function() {
-					let child = $(".timeline-beat:nth-of-type(" + (i+2) + ")")
-					child.addClass("on");
-					child.on("animationend", function(){
-				    	$(this).removeClass('on');
-				    });
-					console.log(i);
-					console.log("0:" + i + ":0");
+					beat.addClass("loop-ping");
+					beat.on("animationend", function(){
+			    	$(this).removeClass('loop-ping');
+			    });
+				}, time);
+			}, "0:" + i + ":0");
+		} else if (i < fromBBStoBeats(maxTime)) {
+			beat.addClass("normal");
+			Tone.Transport.schedule(function(time) {
+				Tone.Draw.schedule(function() {
+					beat.addClass("normal-ping");
+					beat.on("animationend", function(){
+			    	$(this).removeClass('normal-ping');
+			    });
 				}, time);
 			}, "0:" + i + ":0");
 		} else {
-			$(".timeline-beat:nth-of-type(" + (i+2) + ")").addClass("off");
+			beat.removeClass("normal loop");
 		}
 	});
 
 	timeline.children(".timeline-beat").children("div").css("display", "none");
 	if (beatPixels < 17) {
-		timeline.children(".timeline-beat:nth-of-type(8n+2)").children("div").css("display", "block");
+		timeline.children(".timeline-beat:nth-of-type(8n+1)").children("div").css("display", "block");
 	} else if (beatPixels < 34) {
-		timeline.children(".timeline-beat:nth-of-type(4n+2)").children("div").css("display", "block");
+		timeline.children(".timeline-beat:nth-of-type(4n+1)").children("div").css("display", "block");
 	} else {
 		timeline.children(".timeline-beat").children("div").css("display", "block");
 	}
@@ -458,47 +445,29 @@ function addBBSTimes(time1, time2) {
 	return Tone.Time( Tone.Time(time1).valueOf() + Tone.Time(time2).valueOf() ).toBarsBeatsSixteenths();
 }
 
-function repeat(time) {
-	console.log('repeating');
+function redraw() {
+	// console.log("redrawing");
 	let position = document.getElementById("position");
-// 	let playhead = document.getElementById("playhead");
 	if (Tone.Time(Tone.Transport.position).valueOf() > Tone.Time(maxTime).valueOf() && Tone.Transport.state == "started" && Tone.Transport.loop == false) {
 		playPause(document.getElementById("play-pause"));
 		Tone.Transport.position = maxTime;
 	}
-	Tone.Draw.schedule(function(){
-		position.innerHTML = Tone.Transport.position;
-		updatePlayhead();
-// 		updateTimelineGraphics();
-	}, time);
+	position.innerHTML = Tone.Transport.position;
+	$(".playhead-part").css("left", Tone.Time(Tone.Transport.position).valueOf() * Tone.Transport.bpm.value / 60 * beatPixels + parseFloat($(".playhead-part").parent().css('padding-left')) + "px");
+	window.requestAnimationFrame(redraw);
 }
 
 function updatePosition(e) {
-	console.log(e.type);
-	if (e.type == "drag") {
-		Tone.Transport.position = "0:" + ((    (parseFloat(($("#playhead").css('left'))))) / beatPixels) + ":0";
-	} else if (e.type == "click" || e.type == "dragstop") {
-		Tone.Transport.position = "0:" + Math.round((e.clientX - parseFloat($("#timeline-wrapper").css('padding-left')) - parseFloat($("#tracks-top-left").css('width')) + parseFloat($("#track-elements-right").scrollLeft())) / beatPixels) + ":0";
-		if (Tone.Time(Tone.Transport.position).valueOf() > Tone.Time(maxTime).valueOf()) {
-			Tone.Transport.position = maxTime;
-		}
+	Tone.Transport.position = "0:" + Math.round((e.clientX - parseFloat($(".playhead-part").parent().css('padding-left')) - parseFloat($("#tracks-top-left").css('width')) + parseFloat($("#track-elements-right").scrollLeft())) / beatPixels) + ":0";
+	if (Tone.Time(Tone.Transport.position).valueOf() > Tone.Time(maxTime).valueOf()) {
+		Tone.Transport.position = maxTime;
 	}
 
 	document.getElementById("position").innerHTML = Tone.Transport.position;
-	updatePlayhead();
-}
-
-function updatePlayhead() {
-	let playhead = document.getElementById("playhead");
-	let playheadBar = document.getElementById("playhead-bar");
-// 	console.log(parseFloat($("#track-elements-right").scrollLeft()));
-	playhead.style.left = Tone.Time(Tone.Transport.position).valueOf() * Tone.Transport.bpm.value / 60 * beatPixels + parseFloat($("#timeline").css('padding-left')) + "px";
-	playheadBar.style.height = $( "#track-elements-right").height() + $( "#timeline").height() + "px";
+	redraw();
 }
 
 function playPause() {
-// 	updateTransport();
-// 	Tone.context.resume();
 	if (Tone.context.state !== 'running') {
         Tone.context.resume();
     }
