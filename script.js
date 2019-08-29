@@ -144,16 +144,12 @@ function new808Track() {
 }
 
 function newDrumTrack() {
-	let instrument = new Tone.Sampler({
-// 		"72" : "https://cdn-13.anonfile.com/l2q9ld42n5/ce75658f-1566884432/hihat.wav",
-// 		"60" : "https://cdn-17.anonfile.com/kfqalc4dne/4b954d9a-1566884374/snare.wav",
-// 		"59" : "https://cdn-11.anonfile.com/j1q6l249n4/e36aa229-1566884452/clap.wav"
-
-		"72" : "sounds/hihat.wav",
-		"60" : "sounds/snare.wav",
-		"59" : "sounds/clap.wav"
-	});
-// 	let instrument = new Tone.PolySynth();
+	// let instrument = new Tone.Sampler({
+	// 	"72" : "sounds/hihat.wav",
+	// 	"60" : "sounds/snare.wav",
+	// 	"59" : "sounds/clap.wav"
+	// });
+	let instrument = new Tone.PolySynth();
 	instrument.toMaster();
 	let track = new Track(instrument);
 	tracks.push(track);
@@ -392,7 +388,7 @@ function updateTransport() {
 // 							console.log("pitch: " + pitch + ", position: " + position);
 
 							Tone.Transport.schedule(function(time) {
-								track.instrument.triggerAttackRelease(Tone.Frequency(pitch, "midi").toNote(), duration);
+								track.instrument.triggerAttackRelease(Tone.Frequency(pitch, "midi").toNote(), duration, time);
 							}, position);
 						});
 					}
