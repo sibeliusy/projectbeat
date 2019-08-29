@@ -49,12 +49,10 @@
         </div>
 
         <div id="timeline-wrapper" class="hidden-scrollbar">
-          <div class="flex-container" id="timeline">
-            <div id="playhead">
-              <div id="playhead-head"></div>
-              <div id="playhead-bar"></div>
-            </div>
+          <div class="playhead-part">
+            <div id="playhead-head"></div>
           </div>
+          <div class="flex-container" id="timeline"></div>
         </div>
 
       </div>
@@ -67,6 +65,9 @@
  				</div>
  				<div id="track-elements-right">
           <div id="track-elements-right-inner">
+            <div class="playhead-part">
+              <div id="playhead-bar"></div>
+            </div>
             <div id="grayed-out"></div>
             <div id="track-displays"></div>
           </div>
