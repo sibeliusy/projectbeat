@@ -293,13 +293,20 @@ html, body {
 	width: 30px;
 }
 
-.track-header-text {
+.track-header-info {
 	padding: 8px;
+  /* overflow: auto; */
+}
 
-	-webkit-user-select: none;  /* Chrome all / Safari all */
-	-moz-user-select: none;     /* Firefox all */
-	-ms-user-select: none;      /* IE 10+ */
-	user-select: none;          /* Likely future */
+.track-header-name {
+  /* border: 1px solid #e6e6e6; */
+  background: none;
+  border: none;
+  box-sizing: border-box;
+  display: block;
+  font-size: initial;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 
 .track-display {

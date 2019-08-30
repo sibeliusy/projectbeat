@@ -90,14 +90,10 @@ window.onload = function() {
 	updateTransport();
 }
 
-// $( window ).resize(function() {
-// 	updatePlayhead();
-// });
-
 $(window).keypress(function (e) {
   if (e.key === ' ' || e.key === 'Spacebar') {
     // ' ' is standard, 'Spacebar' was used by IE9 and Firefox < 37
-    e.preventDefault();
+    // e.preventDefault();
     playPause();
   }
 })
@@ -139,12 +135,12 @@ function new808Track() {
 }
 
 function newDrumTrack() {
-	// let instrument = new Tone.Sampler({
-	// 	"72" : "sounds/hihat.wav",
-	// 	"60" : "sounds/snare.wav",
-	// 	"59" : "sounds/clap.wav"
-	// });
-	let instrument = new Tone.PolySynth();
+	let instrument = new Tone.Sampler({
+		"72" : "sounds/hihat.wav",
+		"60" : "sounds/snare.wav",
+		"59" : "sounds/clap.wav"
+	});
+	// let instrument = new Tone.PolySynth();
 
 
 	instrument.toMaster();
@@ -152,22 +148,30 @@ function newDrumTrack() {
 	tracks.push(track);
 
 	let notes = [];
-	for (let i = 0; i < 8; i++) {
-		notes.push(new Note(72, "0:0:" + 2*i, "16n"));
+	for (let i = 0; i < 16; i++) {
+		if (Math.random() < 0.1) {
+			notes.push(new Note(72, "0:0:" + 2*i, "16n"));
+			notes.push(new Note(72, "0:0:" + (2*i + 1), "16n"));
+		} else if (Math.random() < 0.1) {
+			notes.push(new Note(74, "0:0:" + 2*i, "32n"));
+			notes.push(new Note(73, "0:0:" + (2*i + 0.5), "32n"));
+			notes.push(new Note(72, "0:0:" + (2*i + 1), "32n"));
+			notes.push(new Note(71, "0:0:" + (2*i + 1.5), "32n"));
+		} else {
+			notes.push(new Note(72, "0:0:" + 2*i, "8n"));
+		}
 	}
 	notes.push(new Note(59, "0:2", "8n"));
-	let block = new Block("1:0:0", notes);
-	let blocks = [block, block.copy()];
+	notes.push(new Note(59, "1:2", "8n"));
+	let block = new Block("2:0:0", notes);
+	let blocks = [block];
 	track.blocks = blocks;
 
 	createTrackElements(track, "Drum Sampler");
 }
 
 function newEmptyTrack() {
-	var name = prompt("Enter track name", "Harry Potter");
-	if (name == "" || name == null) {
-		name = "Untitled Track";
-	}
+	name = "Untitled Track";
 
 	let instrument = new Tone.Synth;
 	instrument.toMaster();
@@ -199,10 +203,15 @@ function createTrackElements(track, name = "Untitled Track") {
 // 	trackHeaderHandle.innerHTML = "↕";
 	trackHeader.appendChild(trackHeaderHandle);
 
-	let trackHeaderText = document.createElement("div")
-	trackHeaderText.classList.add("track-header-text");
-	trackHeaderText.innerHTML = name;
-	trackHeader.appendChild(trackHeaderText);
+	let trackHeaderInfo = document.createElement("div");
+	trackHeaderInfo.classList.add("track-header-info");
+	// trackHeaderInfo.setAttribute("contenteditable", "true");
+	trackHeader.appendChild(trackHeaderInfo);
+
+	let trackHeaderName = document.createElement("input");
+	trackHeaderName.classList.add("track-header-name");
+	trackHeaderName.value = name;
+	trackHeaderInfo.appendChild(trackHeaderName);
 
 	let trackDisplay = document.createElement("div");
 	trackDisplay.classList.add("track-display");
@@ -356,7 +365,11 @@ function updateTransport() {
 	Tone.Transport.loopStart = "0:0:0";
 	Tone.Transport.loopEnd = "2:0:0";
 
-	maxTime = "0:0:0";
+	if (Tone.Transport.loop) {
+		maxTime = Tone.Transport.loopEnd;
+	} else {
+		maxTime = "0:0:0";
+	}
 	Tone.Transport.cancel();
 	if (tracks.length > 0) {
 		tracks.forEach(function(track) {
