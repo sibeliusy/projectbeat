@@ -112,11 +112,11 @@ function new808Track() {
 	let instrument = new Tone.MembraneSynth({
 		pitchDecay  : 0 ,
 		oscillator  : {
-			type  : "sine"
+			type  : "sine",
 		}  ,
 		envelope  : {
 			attack  : 0.01 ,
-			decay  : 0.1 ,
+			decay  : 0.5,
 			sustain  : 0.3,
 			release  : 2,
 		}
@@ -128,7 +128,7 @@ function new808Track() {
 	let notes = [];
 	for (let i = 0; i < 16; i++) {
 		if (i % 16 == 0 || Math.random() < 0.3) {
-			notes.push(new Note(getRandomInt(30, 40), "0:0:" + 2*i, "8n"));
+			notes.push(new Note(getRandomInt(30, 42), "0:0:" + 2*i, "8n"));
 		}
 	}
 	let block = new Block("2:0:0", notes);
@@ -139,12 +139,12 @@ function new808Track() {
 }
 
 function newDrumTrack() {
-	let instrument = new Tone.Sampler({
-		"72" : "sounds/hihat.wav",
-		"60" : "sounds/snare.wav",
-		"59" : "sounds/clap.wav"
-	});
-	// let instrument = new Tone.PolySynth();
+	// let instrument = new Tone.Sampler({
+	// 	"72" : "sounds/hihat.wav",
+	// 	"60" : "sounds/snare.wav",
+	// 	"59" : "sounds/clap.wav"
+	// });
+	let instrument = new Tone.PolySynth();
 
 
 	instrument.toMaster();
@@ -153,7 +153,7 @@ function newDrumTrack() {
 
 	let notes = [];
 	for (let i = 0; i < 8; i++) {
-		notes.push(new Note(72, "0:0:" + 2*i, "8n"));
+		notes.push(new Note(72, "0:0:" + 2*i, "16n"));
 	}
 	notes.push(new Note(59, "0:2", "8n"));
 	let block = new Block("1:0:0", notes);
@@ -399,17 +399,10 @@ function updateTimelineGraphics() {
 	let timeline = $("#timeline");
 	timeline.children(".timeline-beat").each(function(i) {
 		let beat = $(".timeline-beat").eq(i);
-		if (i >= fromBBStoBeats(Tone.Transport.loopStart) && i < fromBBStoBeats(Tone.Transport.loopEnd)) {
-			beat.addClass("loop");
-			Tone.Transport.schedule(function(time) {
-				Tone.Draw.schedule(function() {
-					beat.addClass("loop-ping");
-					beat.on("animationend", function(){
-			    	$(this).removeClass('loop-ping');
-			    });
-				}, time);
-			}, "0:" + i + ":0");
-		} else if (i < fromBBStoBeats(maxTime)) {
+
+		beat.removeClass("normal loop loop-end");
+
+		if (i < fromBBStoBeats(maxTime)) {
 			beat.addClass("normal");
 			Tone.Transport.schedule(function(time) {
 				Tone.Draw.schedule(function() {
@@ -419,8 +412,22 @@ function updateTimelineGraphics() {
 			    });
 				}, time);
 			}, "0:" + i + ":0");
-		} else {
-			beat.removeClass("normal loop");
+		}
+
+		if (Tone.Transport.loop) {
+			if (i >= Math.round(fromBBStoBeats(Tone.Transport.loopStart)) && i < Math.round(fromBBStoBeats(Tone.Transport.loopEnd))) {
+				beat.addClass("loop");
+				Tone.Transport.schedule(function(time) {
+					Tone.Draw.schedule(function() {
+						beat.addClass("loop-ping");
+						beat.on("animationend", function(){
+				    	$(this).removeClass('loop-ping');
+				    });
+					}, time);
+				}, "0:" + i + ":0");
+			} else if (i == Math.round(fromBBStoBeats(Tone.Transport.loopEnd))) {
+				beat.addClass("loop-end");
+			}
 		}
 	});
 
