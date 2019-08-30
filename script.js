@@ -90,14 +90,10 @@ window.onload = function() {
 	updateTransport();
 }
 
-// $( window ).resize(function() {
-// 	updatePlayhead();
-// });
-
 $(window).keypress(function (e) {
   if (e.key === ' ' || e.key === 'Spacebar') {
     // ' ' is standard, 'Spacebar' was used by IE9 and Firefox < 37
-    e.preventDefault();
+    // e.preventDefault();
     playPause();
   }
 })
@@ -112,11 +108,11 @@ function new808Track() {
 	let instrument = new Tone.MembraneSynth({
 		pitchDecay  : 0 ,
 		oscillator  : {
-			type  : "sine"
+			type  : "sine",
 		}  ,
 		envelope  : {
 			attack  : 0.01 ,
-			decay  : 0.1 ,
+			decay  : 0.5,
 			sustain  : 0.3,
 			release  : 2,
 		}
@@ -128,7 +124,7 @@ function new808Track() {
 	let notes = [];
 	for (let i = 0; i < 16; i++) {
 		if (i % 16 == 0 || Math.random() < 0.3) {
-			notes.push(new Note(getRandomInt(30, 40), "0:0:" + 2*i, "8n"));
+			notes.push(new Note(getRandomInt(30, 42), "0:0:" + 2*i, "8n"));
 		}
 	}
 	let block = new Block("2:0:0", notes);
@@ -152,22 +148,30 @@ function newDrumTrack() {
 	tracks.push(track);
 
 	let notes = [];
-	for (let i = 0; i < 8; i++) {
-		notes.push(new Note(72, "0:0:" + 2*i, "8n"));
+	for (let i = 0; i < 16; i++) {
+		if (Math.random() < 0.1) {
+			notes.push(new Note(72, "0:0:" + 2*i, "16n"));
+			notes.push(new Note(72, "0:0:" + (2*i + 1), "16n"));
+		} else if (Math.random() < 0.1) {
+			notes.push(new Note(74, "0:0:" + 2*i, "32n"));
+			notes.push(new Note(73, "0:0:" + (2*i + 0.5), "32n"));
+			notes.push(new Note(72, "0:0:" + (2*i + 1), "32n"));
+			notes.push(new Note(71, "0:0:" + (2*i + 1.5), "32n"));
+		} else {
+			notes.push(new Note(72, "0:0:" + 2*i, "8n"));
+		}
 	}
 	notes.push(new Note(59, "0:2", "8n"));
-	let block = new Block("1:0:0", notes);
-	let blocks = [block, block.copy()];
+	notes.push(new Note(59, "1:2", "8n"));
+	let block = new Block("2:0:0", notes);
+	let blocks = [block];
 	track.blocks = blocks;
 
 	createTrackElements(track, "Drum Sampler");
 }
 
 function newEmptyTrack() {
-	var name = prompt("Enter track name", "Harry Potter");
-	if (name == "" || name == null) {
-		name = "Untitled Track";
-	}
+	name = "Untitled Track";
 
 	let instrument = new Tone.Synth;
 	instrument.toMaster();
@@ -199,10 +203,15 @@ function createTrackElements(track, name = "Untitled Track") {
 // 	trackHeaderHandle.innerHTML = "↕";
 	trackHeader.appendChild(trackHeaderHandle);
 
-	let trackHeaderText = document.createElement("div")
-	trackHeaderText.classList.add("track-header-text");
-	trackHeaderText.innerHTML = name;
-	trackHeader.appendChild(trackHeaderText);
+	let trackHeaderInfo = document.createElement("div");
+	trackHeaderInfo.classList.add("track-header-info");
+	// trackHeaderInfo.setAttribute("contenteditable", "true");
+	trackHeader.appendChild(trackHeaderInfo);
+
+	let trackHeaderName = document.createElement("input");
+	trackHeaderName.classList.add("track-header-name");
+	trackHeaderName.value = name;
+	trackHeaderInfo.appendChild(trackHeaderName);
 
 	let trackDisplay = document.createElement("div");
 	trackDisplay.classList.add("track-display");
@@ -356,7 +365,11 @@ function updateTransport() {
 	Tone.Transport.loopStart = "0:0:0";
 	Tone.Transport.loopEnd = "2:0:0";
 
-	maxTime = "0:0:0";
+	if (Tone.Transport.loop) {
+		maxTime = Tone.Transport.loopEnd;
+	} else {
+		maxTime = "0:0:0";
+	}
 	Tone.Transport.cancel();
 	if (tracks.length > 0) {
 		tracks.forEach(function(track) {
@@ -399,17 +412,10 @@ function updateTimelineGraphics() {
 	let timeline = $("#timeline");
 	timeline.children(".timeline-beat").each(function(i) {
 		let beat = $(".timeline-beat").eq(i);
-		if (i >= fromBBStoBeats(Tone.Transport.loopStart) && i < fromBBStoBeats(Tone.Transport.loopEnd)) {
-			beat.addClass("loop");
-			Tone.Transport.schedule(function(time) {
-				Tone.Draw.schedule(function() {
-					beat.addClass("loop-ping");
-					beat.on("animationend", function(){
-			    	$(this).removeClass('loop-ping');
-			    });
-				}, time);
-			}, "0:" + i + ":0");
-		} else if (i < fromBBStoBeats(maxTime)) {
+
+		beat.removeClass("normal loop loop-end");
+
+		if (i < fromBBStoBeats(maxTime)) {
 			beat.addClass("normal");
 			Tone.Transport.schedule(function(time) {
 				Tone.Draw.schedule(function() {
@@ -419,8 +425,22 @@ function updateTimelineGraphics() {
 			    });
 				}, time);
 			}, "0:" + i + ":0");
-		} else {
-			beat.removeClass("normal loop");
+		}
+
+		if (Tone.Transport.loop) {
+			if (i >= Math.round(fromBBStoBeats(Tone.Transport.loopStart)) && i < Math.round(fromBBStoBeats(Tone.Transport.loopEnd))) {
+				beat.addClass("loop");
+				Tone.Transport.schedule(function(time) {
+					Tone.Draw.schedule(function() {
+						beat.addClass("loop-ping");
+						beat.on("animationend", function(){
+				    	$(this).removeClass('loop-ping');
+				    });
+					}, time);
+				}, "0:" + i + ":0");
+			} else if (i == Math.round(fromBBStoBeats(Tone.Transport.loopEnd))) {
+				beat.addClass("loop-end");
+			}
 		}
 	});
 
