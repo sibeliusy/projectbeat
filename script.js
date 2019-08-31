@@ -2,25 +2,13 @@ console.clear();
 var tracks = [];
 var maxTime;
 var beatPixels = 100;
-var ignoreScrollEvents = false;
+var loopEnd;
+var loopStart;
 
 window.onload = function() {
 	console.log("flexion started");
 
-	let trackElementsRight = document.getElementById("track-elements-right")
-	let timelineWrapper = document.getElementById("timeline-wrapper");
-	trackElementsRight.addEventListener("scroll", function() {
-		var ignore = ignoreScrollEvents;
-	  ignoreScrollEvents = false;
-	  if (ignore) return false;
-		ignorableScrollLeft(timelineWrapper, this.scrollLeft);
-	});
-	timelineWrapper.addEventListener("scroll", function() {
-		var ignore = ignoreScrollEvents;
-	  ignoreScrollEvents = false;
-	  if (ignore) return false;
-		ignorableScrollLeft(trackElementsRight, this.scrollLeft);
-	});
+	window.requestAnimationFrame(redraw);
 
 	document.getElementById("tempo-number").addEventListener("change", function() {
 		setTempo(this.value);
@@ -45,17 +33,17 @@ window.onload = function() {
 		document.getElementById("position").innerHTML = Tone.Transport.position;
 	});
 
-	Sortable.create(document.getElementById("track-headers"), {
+	Sortable.create(document.getElementById("tracks"), {
 		animation: 200,
 		direction: "vertical",
-		group: "track-headers",
+		group: "tracks",
 		handle: ".handle",
 		onEnd: function (/**Event*/evt) {
 			tracks.move(evt.oldIndex, evt.newIndex);
-			swapDivs($(".track-display:nth-child(" + (evt.oldIndex+1) + ")"), $(".track-display:nth-child(" + (evt.newIndex+1) + ")"));
-			sortableTrackDisplay($(".track-display:nth-child(" + (evt.oldIndex+1) + ")")[0]);
-			sortableTrackDisplay($(".track-display:nth-child(" + (evt.newIndex+1) + ")")[0]);
-			updateBlockGraphics();
+			// swapDivs($(".track-display:nth-child(" + (evt.oldIndex+1) + ")"), $(".track-display:nth-child(" + (evt.newIndex+1) + ")"));
+			// sortableTrackDisplay($(".track-display:nth-child(" + (evt.oldIndex+1) + ")")[0]);
+			// sortableTrackDisplay($(".track-display:nth-child(" + (evt.newIndex+1) + ")")[0]);
+			// updateBlockGraphics();
 		},
 	});
 
@@ -70,7 +58,7 @@ window.onload = function() {
 		timeline.appendChild(beat);
 	}
 
-	timeline.addEventListener("click", function(e) {
+	document.getElementById("timeline-wrapper").addEventListener("click", function(e) {
 		console.log("click");
 		updatePosition(e);
 	});
@@ -135,12 +123,12 @@ function new808Track() {
 }
 
 function newDrumTrack() {
-	let instrument = new Tone.Sampler({
-		"72" : "sounds/hihat.wav",
-		"60" : "sounds/snare.wav",
-		"59" : "sounds/clap.wav"
-	});
-	// let instrument = new Tone.PolySynth();
+	// let instrument = new Tone.Sampler({
+	// 	"72" : "sounds/hihat.wav",
+	// 	"60" : "sounds/snare.wav",
+	// 	"59" : "sounds/clap.wav"
+	// });
+	let instrument = new Tone.PolySynth();
 
 
 	instrument.toMaster();
@@ -191,21 +179,22 @@ function newEmptyTrack() {
 }
 
 function createTrackElements(track, name = "Untitled Track") {
+	let trackElement = document.createElement("div");
+	trackElement.classList.add("track");
+	document.getElementById("tracks").appendChild(trackElement);
+
 	let trackHeader = document.createElement("div");
 	trackHeader.classList.add("track-header");
-	trackHeader.classList.add("flex-container");
 	trackHeader.classList.add("left");
-	document.getElementById("track-headers").appendChild(trackHeader);
+	trackElement.appendChild(trackHeader);
 
-	let trackHeaderHandle = document.createElement("div")
-	trackHeaderHandle.classList.add("handle");
-	trackHeaderHandle.innerHTML = "⋮";
-// 	trackHeaderHandle.innerHTML = "↕";
-	trackHeader.appendChild(trackHeaderHandle);
+	let trackHandle = document.createElement("div")
+	trackHandle.classList.add("handle");
+	trackHandle.innerHTML = "⋮";
+	trackHeader.appendChild(trackHandle);
 
 	let trackHeaderInfo = document.createElement("div");
 	trackHeaderInfo.classList.add("track-header-info");
-	// trackHeaderInfo.setAttribute("contenteditable", "true");
 	trackHeader.appendChild(trackHeaderInfo);
 
 	let trackHeaderName = document.createElement("input");
@@ -215,8 +204,8 @@ function createTrackElements(track, name = "Untitled Track") {
 
 	let trackDisplay = document.createElement("div");
 	trackDisplay.classList.add("track-display");
-	trackDisplay.classList.add("track-part");
-	document.getElementById("track-displays").appendChild(trackDisplay);
+	trackDisplay.classList.add("right");
+	trackElement.appendChild(trackDisplay);
 
 	track.blocks.forEach(function(block) {
 		let blockContainer = document.createElement("div");
@@ -243,10 +232,10 @@ function createTrackElements(track, name = "Untitled Track") {
 
 	sortableTrackDisplay(trackDisplay);
 
-	let scrollAmount = $("#track-elements").height() - $("#track-elements-wrapper").height();
+	let scrollAmount = $("#tracks-wrapper").height() - $("#tracks-area").height();
 	console.log(scrollAmount);
 	if (scrollAmount > 0) {
-		$("#track-elements-wrapper").animate({
+		$("#tracks-area").animate({
 			scrollTop: scrollAmount
 		}, 200);
 	}
@@ -260,7 +249,8 @@ function sortableTrackDisplay(trackDisplay) {
 		animation: 200,
 		group: "blocks",
 		onEnd: function (/**Event*/evt) {
-			moveItemBetweenArrays(tracks[$(evt.from).index()].blocks, evt.oldIndex, tracks[$(evt.to).index()].blocks, evt.newIndex);
+			console.log($(evt.from).parent().index());
+			moveItemBetweenArrays(tracks[$(evt.from).parent().index()].blocks, evt.oldIndex, tracks[$(evt.to).parent().index()].blocks, evt.newIndex);
 			updateTransport();
 		},
 	});
@@ -279,14 +269,6 @@ function moveItemBetweenArrays(oldArray, oldIndex, newArray, newIndex) {
 	newArray.splice(newIndex, 0, movingItem);
 }
 
-function ignorableScrollLeft(element, x) {
-	if ( element.scrollLeft != x )
-  {
-    ignoreScrollEvents = true;
-    element.scrollLeft = x;
-  }
-}
-
 function updateBlockGraphics() {
 
 	$(".track-block-container").on("click touchstart dragstart", function(e){
@@ -300,7 +282,7 @@ function updateBlockGraphics() {
 		$(this).addClass("selected");
 	});
 
-	$("#track-elements-wrapper").on("click touchstart", function(evt){
+	$("#tracks-area").on("click touchstart", function(evt){
 		console.log("should deselect");
 		evt.stopImmediatePropagation();
 		$(".track-block-container").not($(this)).removeClass("selected");
@@ -342,9 +324,9 @@ function updateBlockGraphics() {
 			maxPitch += 1;
 
 
-			let text = "";
+
 			block.notes.forEach(function(note) {
-				text += note.pitch + " ";
+				// text += note.pitch + " ";
 
 				let notePosition = fromBBStoBeats(note.position) / fromBBStoBeats(block.duration);
 				let noteDuration = fromBBStoBeats(note.duration) / fromBBStoBeats(block.duration);
@@ -354,19 +336,20 @@ function updateBlockGraphics() {
 				ctx.lineTo((notePosition + noteDuration) * blockCanvas.width - 2 * scalar, y);
 				ctx.stroke();
 			});
-			blockText.innerHTML = text;
+			blockText.innerHTML = block.name;
+			console.log("flex");
 		});
 	});
 }
 
 function updateTransport() {
 
+	// console.log(loopEnd);
 	Tone.Transport.loop = true;
-	Tone.Transport.loopStart = "0:0:0";
-	Tone.Transport.loopEnd = "2:0:0";
+	setLoop("0:0:0", "2:0:0");
 
 	if (Tone.Transport.loop) {
-		maxTime = Tone.Transport.loopEnd;
+		maxTime = loopEnd;
 	} else {
 		maxTime = "0:0:0";
 	}
@@ -399,7 +382,7 @@ function updateTransport() {
 		});
 	}
 
-	window.requestAnimationFrame(redraw);
+	// window.requestAnimationFrame(redraw);
 
 	updateTimelineGraphics();
 	// updateBlockGraphics();
@@ -428,7 +411,7 @@ function updateTimelineGraphics() {
 		}
 
 		if (Tone.Transport.loop) {
-			if (i >= Math.round(fromBBStoBeats(Tone.Transport.loopStart)) && i < Math.round(fromBBStoBeats(Tone.Transport.loopEnd))) {
+			if (i >= Math.round(fromBBStoBeats(loopStart)) && i < Math.round(fromBBStoBeats(loopEnd))) {
 				beat.addClass("loop");
 				Tone.Transport.schedule(function(time) {
 					Tone.Draw.schedule(function() {
@@ -438,7 +421,7 @@ function updateTimelineGraphics() {
 				    });
 					}, time);
 				}, "0:" + i + ":0");
-			} else if (i == Math.round(fromBBStoBeats(Tone.Transport.loopEnd))) {
+			} else if (i == Math.round(fromBBStoBeats(loopEnd))) {
 				beat.addClass("loop-end");
 			}
 		}
@@ -455,36 +438,32 @@ function updateTimelineGraphics() {
 
 
 	$(".timeline-beat").css("width", beatPixels + "px");
-	$("#track-elements-right-inner").css("width", $("#timeline").width())
 	let grayedOut = document.getElementById("grayed-out");
-	grayedOut.style.left = Tone.Time(maxTime).valueOf() * Tone.Transport.bpm.value / 60 * beatPixels + parseFloat($("#timeline-wrapper").css('padding-left')) + "px";
+	grayedOut.style.left = Tone.Time(maxTime).valueOf() * Tone.Transport.bpm.value / 60 * beatPixels + parseFloat($("#timeline-wrapper").css('padding-left')) + parseFloat($("#tracks-top-left").css("width")) + "px";
 	grayedOut.style.width = "calc(100% - " + grayedOut.style.left + ")";
-}
-
-function addBBSTimes(time1, time2) {
-	return Tone.Time( Tone.Time(time1).valueOf() + Tone.Time(time2).valueOf() ).toBarsBeatsSixteenths();
 }
 
 function redraw() {
 	// console.log("redrawing");
 	let position = document.getElementById("position");
-	if (Tone.Time(Tone.Transport.position).valueOf() > Tone.Time(maxTime).valueOf() && Tone.Transport.state == "started" && Tone.Transport.loop == false) {
+	if (Tone.Time(Tone.Transport.position).valueOf() > Tone.Time(maxTime).valueOf() && Tone.Transport.state == "started" && !Tone.Transport.loop) {
 		playPause(document.getElementById("play-pause"));
 		Tone.Transport.position = maxTime;
 	}
 	position.innerHTML = Tone.Transport.position;
-	$(".playhead-part").css("left", Tone.Time(Tone.Transport.position).valueOf() * Tone.Transport.bpm.value / 60 * beatPixels + parseFloat($(".playhead-part").parent().css('padding-left')) + "px");
+	$(".playhead-part").css("left", Tone.Time(Tone.Transport.position).valueOf() * Tone.Transport.bpm.value / 60 * beatPixels + parseFloat($("#timeline-wrapper").css('padding-left')) + parseFloat($("#tracks-top-left").css("width"))  + "px");
 	window.requestAnimationFrame(redraw);
 }
 
 function updatePosition(e) {
-	Tone.Transport.position = "0:" + Math.round((e.clientX - parseFloat($(".playhead-part").parent().css('padding-left')) - parseFloat($("#tracks-top-left").css('width')) + parseFloat($("#track-elements-right").scrollLeft())) / beatPixels) + ":0";
+	console.log("position update startd");
+	// Tone.Transport.position = "0:" + Math.round((e.clientX - parseFloat($(".playhead-part").parent().css('padding-left')) - parseFloat($("#tracks-top-left").css('width')) + parseFloat($("#tracks-area").scrollLeft())) / beatPixels) + ":0";
+	Tone.Transport.position = "0:" + ((e.clientX - parseFloat($(".playhead-part").parent().css('padding-left')) - parseFloat($("#tracks-top-left").css('width')) + parseFloat($("#tracks-area").scrollLeft())) / beatPixels) + ":0";
 	if (Tone.Time(Tone.Transport.position).valueOf() > Tone.Time(maxTime).valueOf()) {
 		Tone.Transport.position = maxTime;
 	}
 
 	document.getElementById("position").innerHTML = Tone.Transport.position;
-	redraw();
 }
 
 function playPause() {
@@ -504,4 +483,11 @@ function setTempo(value) {
 	document.getElementById("tempo-number").value = value;
 	document.getElementById("tempo-range").value = value;
 	Tone.Transport.bpm.value = value;
+}
+
+function setLoop(start, end) {
+	loopStart = start;
+	loopEnd = end;
+	Tone.Transport.loopStart = start;
+	Tone.Transport.loopEnd = end;
 }

@@ -28,51 +28,53 @@
 <body>
 	<div id="editor">
 		<div id="top">
-		  	<div id="menu">
-  	  			<span>Project Beat</span>
-			    <span class="button" id="new-beat">+new beat</span>
+	  	<div id="menu">
+  			<span>Project Beat</span>
+		    <span class="button" id="new-beat">+new beat</span>
 				<span class="button" id="play-pause">play</span>
 				<span class="button" id="beginning">go to beginning</span>
 				<span id="position">0:0:0</span>
 				<span>Tempo: <input id="tempo-number" type="number" value="120"><input type="range" min="1" max="300" value="120" id="tempo-range"></span>
-		   	</div>
+	   	</div>
 
 		</div>
 
-		<div id="tracks-container">
-			<div id="beatPixels-range-wrapper"><input type="range" min="7" max="300" value="80" id="beatPixels-range"></div>
-      <div id="tracks-top" class="flex-container">
-        <div class="track-part left" id="tracks-top-left">
-          <span class="button" id="new-track">+ new track</span>
-        </div>
-
-        <div id="timeline-wrapper" class="hidden-scrollbar">
-          <div class="playhead-part">
-            <div id="playhead-head"></div>
-          </div>
-          <div class="flex-container" id="timeline"></div>
-        </div>
-
+    <div id="tracks-area-wrapper">
+      <div id="beatPixels-range-wrapper">
+        <input type="range" min="7" max="300" value="80" id="beatPixels-range">
       </div>
-      <div id="track-elements-wrapper">
-    		<div id="track-elements" class="flex-container">
- 				<div id="track-elements-left">
-	    		<div id="track-headers">
-
-	    		</div>
- 				</div>
- 				<div id="track-elements-right">
-          <div id="track-elements-right-inner">
+  		<div id="tracks-area">
+        <div id="tracks-wrapper">
+          <div id="tracks-top-wrapper">
+            <div class="playhead-part">
+              <div id="playhead-head"></div>
+            </div>
+            <div id="tracks-top">
+              <div id="tracks-top-left" class="left">
+                <span class="button" id="new-track">+ new track</span>
+              </div>
+              <div id="timeline-wrapper" class="right">
+                <div id="timeline"></div>
+              </div>
+            </div>
+          </div>
+          <div id="tracks-plus">
             <div class="playhead-part">
               <div id="playhead-bar"></div>
             </div>
             <div id="grayed-out"></div>
-            <div id="track-displays"></div>
+            <div id="tracks">
+      		  </div>
           </div>
- 				</div>
-    		</div>
+        </div>
       </div>
-		</div>
     </div>
+
+    <!-- <div class="playhead-part">
+      <div id="playhead-bar"></div>
+    </div>
+    <div id="grayed-out"></div> -->
+
+	</div>
 </body>
 </html>

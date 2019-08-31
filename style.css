@@ -1,8 +1,12 @@
 /*defaults*/
 
-.flex-container {
+/* .flex-container {
     display: -webkit-flex;
     display: flex;
+} */
+
+* {
+  box-sizing: border-box;
 }
 
 .hidden-scrollbar {
@@ -22,7 +26,7 @@ a {
 
 html, body {
 	height: 100%;
-    margin: 0;
+  margin: 0;
 }
 
 /*style*/
@@ -49,57 +53,51 @@ html, body {
 	flex-direction: column;
 }
 
-#tracks-container {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  overflow: hidden;
+#tracks-area-wrapper {
+  height: 100%;
 	position: relative;
 }
 
 #beatPixels-range-wrapper {
-    z-index: 100;
-    position: fixed;
     border-radius: 8px;
     padding: 4px;
     box-shadow: 0 0 8px 0 grey;
     background: white;
     margin: 12px;
     opacity: 0.7;
+    position: absolute;
     right: 0;
+    z-index: 3  ;
 }
 
 #beatPixels-range {
 	width: 100px;
 }
 
+#tracks-area {
+  height: 100%;
+	overflow: auto;
+}
+
+#tracks-wrapper {
+	width: fit-content;
+}
+
+#tracks-top-wrapper {
+	position: sticky;
+	top: 0;
+	z-index: 2;
+}
+
 #tracks-top {
-  /* z-index: 88; */
+  display: flex;
 }
 
-#track-elements-wrapper {
-  flex: 1;
-	overflow: auto;
-}
-
-#track-elements {
-	overflow: auto;
-}
-
-#track-elements-right {
-  /* position: relative; */
-  overflow: auto;
-}
-
-#track-elements-right-inner {
-	position: relative;
-  /* width: 10000px; */
-}
-
-#track-elements-left {
-  flex-shrink: 0;
-	width: 150px;
-  z-index: 15;
+#tracks-top-left {
+  background: white;
+  border-bottom: 1px solid #e6e6e6;
+  padding: 8px;
+  z-index: 3;
 }
 
 #timeline-wrapper {
@@ -110,35 +108,26 @@ html, body {
 }
 
 #timeline {
+  display: flex;
   position: relative;
   width: fit-content;
-	z-index: 10;
-}
-
-#tracks-top-left {
-	background-color: white;
-	position: -webkit-sticky;
-	position: sticky;
-	top: 0;
-	z-index: 4;
 }
 
 #grayed-out {
 	background-color: #f2f2f2;
 	border-left: 1px solid #e6e6e6;
-	box-sizing: border-box;
+  height: 100%;
 	position: absolute;
-	height: 100%;
-	width: calc(100%);
 	left: 8px;
-	z-index: 2;
+  width: 100%;
+	z-index: -1;
 }
 
 .playhead-part {
 	height: 100%;
 	opacity: 0.5;
 	position: absolute;
-	z-index: 15;
+	z-index: 1;
 }
 
 .playhead-part div {
@@ -149,7 +138,6 @@ html, body {
 	background-color: red;
 	position: relative;
 	left: -4px;
-	/* height: 100%; */
 	width: 9px;
 }
 
@@ -159,16 +147,12 @@ html, body {
   width: 1px;
 }
 
-
-#track-displays {
-	/* flex-grow: 1; */
-	/* width: fit-content; */
-	/* overflow: scroll; */
+#tracks-plus {
+  position: relative;
 }
 
-.blocks-track-name {
-	font-weight: 400;
-}
+
+/* classes */
 
 .button {
 	border: 1px solid #e6e6e6;
@@ -198,7 +182,6 @@ html, body {
 	border-left: 1px solid #e6e6e6;
 	padding: 8px 4px;
 	position: relative;
-	z-index: 2;
 }
 
 .timeline-beat.normal {
@@ -240,48 +223,30 @@ html, body {
 
 .track {
 	border-bottom: 1px solid #e6e6e6;
+  display: flex;
 	height: 100px;
 }
 
-.track-part {
-	padding: 8px;
-	border-bottom: 1px solid #e6e6e6;
-}
-
-.track-part.left {
+.left {
 	border-right: 1px solid #e6e6e6;
-	box-sizing: border-box;
 	flex-shrink: 0;
 	position: -webkit-sticky;
 	position: sticky;
 	left: 0;
   width: 150px;
-	z-index: 3;
+  z-index: 1;
 }
 
-.track-part.right {
+.right {
 	flex: 1;
-/* 	z-index: 0; */
 }
 
 .track-header {
 	background-color: #f2f2f2;
-	border: 1px solid #e6e6e6;
-	border-width: 0 1px 1px 0;
-	box-sizing: border-box;
-	height: 100px;
+  display: flex;
 }
-
-/*
-.track-header:hover .handle {
-	color: initial;
-}
- */
-
-
 
 .track-header .handle {
-/* 	color: white; */
 	background-color: white;
 	border-right: 1px solid #e6e6e6;
 	cursor: move;
@@ -295,14 +260,12 @@ html, body {
 
 .track-header-info {
 	padding: 8px;
-  /* overflow: auto; */
 }
 
 .track-header-name {
-  /* border: 1px solid #e6e6e6; */
   background: none;
   border: none;
-  box-sizing: border-box;
+  /* box-sizing: border-box; */
   display: block;
   font-size: initial;
   text-overflow: ellipsis;
@@ -310,26 +273,18 @@ html, body {
 }
 
 .track-display {
-	box-sizing: border-box;
-	border-bottom: 1px solid #e6e6e6;
-	display: -webkit-flex;
 	display: flex;
 	height: 100px;
 	padding: 8px;
-	position: relative;
-	z-index: 3;
 }
 
 .track-block-container {
-	box-sizing: border-box;
 	padding: 0px 1px 0 0;
 }
 
 .track-block {
 	background-color: #80dbff;
 	border-radius: 8px;
-	box-sizing: border-box;
-/* 	cursor: pointer; */
 	display: flex;
 	flex-direction: column;
 	height: 100%;
@@ -338,16 +293,8 @@ html, body {
 	position: relative;
 }
 
-/*
-.track-block:hover {
-	background-color: #4dccff;
-}
- */
-
-
 .track-block.empty {
 	background-color: #ccf1ff;
-/* 	border-style: dashed; */
 	border: 2px dashed #4dccff;
 }
 
