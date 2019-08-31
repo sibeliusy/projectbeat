@@ -123,12 +123,12 @@ function new808Track() {
 }
 
 function newDrumTrack() {
-	// let instrument = new Tone.Sampler({
-	// 	"72" : "sounds/hihat.wav",
-	// 	"60" : "sounds/snare.wav",
-	// 	"59" : "sounds/clap.wav"
-	// });
-	let instrument = new Tone.PolySynth();
+	let instrument = new Tone.Sampler({
+		"72" : "sounds/hihat.wav",
+		"60" : "sounds/snare.wav",
+		"59" : "sounds/clap.wav"
+	});
+	// let instrument = new Tone.PolySynth();
 
 
 	instrument.toMaster();
