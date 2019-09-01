@@ -38,12 +38,9 @@ window.onload = function() {
 		direction: "vertical",
 		group: "tracks",
 		handle: ".handle",
+		// multiDrag: true,
 		onEnd: function (/**Event*/evt) {
 			tracks.move(evt.oldIndex, evt.newIndex);
-			// swapDivs($(".track-display:nth-child(" + (evt.oldIndex+1) + ")"), $(".track-display:nth-child(" + (evt.newIndex+1) + ")"));
-			// sortableTrackDisplay($(".track-display:nth-child(" + (evt.oldIndex+1) + ")")[0]);
-			// sortableTrackDisplay($(".track-display:nth-child(" + (evt.newIndex+1) + ")")[0]);
-			// updateBlockGraphics();
 		},
 	});
 
@@ -118,7 +115,7 @@ function newTrap808Track() {
 
 	let notes = [];
 	for (let i = 0; i < 16; i++) {
-		if (i % 16 == 0 || Math.random() < 0.3) {
+		if (i % 16 == 0 || Math.random() < 0.3 && i % 8 != 4) {
 			notes.push(new Note(getRandomInt(24, 36), "0:0:" + 2*i, "8n"));
 		}
 	}
@@ -296,9 +293,21 @@ function sortableTrackDisplay(trackDisplay) {
 		animation: 200,
 		group: "blocks",
 		handle: ".track-block",
+		multiDrag: true,
+		selectedClass: "selected",
 		onEnd: function (/**Event*/evt) {
-			console.log($(evt.from).parent().index());
-			moveItemBetweenArrays(tracks[$(evt.from).parent().index()].blocks, evt.oldIndex, tracks[$(evt.to).parent().index()].blocks, evt.newIndex);
+			let oldBlockArray = tracks[$(evt.from).parent().index()].blocks;
+			let newBlockArray = tracks[$(evt.to).parent().index()].blocks;
+
+			if (evt.oldIndicies.length > 0) { //detect if it was multidragged
+				for (let i = evt.oldIndicies.length - 1; i >= 0; i--) { 	//multiDrag: splice in reverse order to not mess up order
+					moveItemBetweenArrays(oldBlockArray, evt.oldIndicies[i].index, newBlockArray, evt.newIndicies[i].index);
+				}
+			} else {
+				//if no multiDrag
+				moveItemBetweenArrays(oldBlockArray, evt.oldIndex, newBlockArray, evt.newIndex);
+			}
+
 			updateTransport();
 		},
 	});
@@ -319,23 +328,24 @@ function moveItemBetweenArrays(oldArray, oldIndex, newArray, newIndex) {
 
 function updateBlockGraphics() {
 
-	$(".track-block-container").on("click touchstart dragstart", function(e){
-		if (e.type == "touchstart" || e.type == "click") {
-			e.stopImmediatePropagation();
-			e.stopPropagation();
-			e.preventDefault();
-		}
-		console.log(e.type);
-		$(".track-block-container").not($(this)).removeClass("selected");
-		$(this).addClass("selected");
-	});
-
-	$("#tracks-area").on("click touchstart", function(evt){
-		console.log("should deselect");
-		evt.stopImmediatePropagation();
-		$(".track-block-container").not($(this)).removeClass("selected");
-		$(this).toggleClass("selected");
-	});
+	// $(".track-block-container").on("touchstart dragstart", function(e){ //touchstart, dragstart too?
+	// 	if (e.type == "touchstart" || e.type == "click") {
+	// 		e.stopImmediatePropagation();
+	// 		e.stopPropagation();
+	// 		e.preventDefault();
+	// 	}
+	// 	console.log(e.type);
+	// 	// $(".track-block-container").not($(this)).removeClass("selected");
+	// 	// $(this).addClass("selected");
+	// 	$(this).toggleClass("selected");
+	// });
+	//
+	// $("#tracks-area").on("click", function(evt){ //touchstart too?
+	// 	console.log("should deselect");
+	// 	evt.stopImmediatePropagation();
+	// 	$(".track-block-container").not($(this)).removeClass("selected");
+	// 	$(this).toggleClass("selected");
+	// });
 
 
 	$(".track-display").each(function(i) {
@@ -356,7 +366,8 @@ function updateBlockGraphics() {
 
 			let block = tracks[i].blocks[j];
 
-			blockContainer.style.width = Tone.Time(block.duration).valueOf() * Tone.Transport.bpm.value / 60 * beatPixels + "px";
+			// blockContainer.style.width = Tone.Time(block.duration).valueOf() * Tone.Transport.bpm.value / 60 * beatPixels + "px";
+			blockElement.style.width = Tone.Time(block.duration).valueOf() * Tone.Transport.bpm.value / 60 * beatPixels - parseFloat($(blockElement).css("margin-right")) + "px";
 
 			let minPitch = 128;
 			let maxPitch = 0;
@@ -385,7 +396,6 @@ function updateBlockGraphics() {
 				ctx.stroke();
 			});
 			blockText.innerHTML = block.name;
-			console.log("flex");
 		});
 	});
 }
