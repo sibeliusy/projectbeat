@@ -259,6 +259,9 @@ html, body {
 }
 
 .track-header-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 	padding: 8px;
 }
 
@@ -270,6 +273,46 @@ html, body {
   font-size: initial;
   text-overflow: ellipsis;
   width: 100%;
+}
+
+.track-header-delete {
+  background: red;
+  color: white;
+  cursor: pointer;
+  text-align: center;
+}
+
+.track-header-volume {
+  display: block;
+  margin: 0;
+  outline: none;
+  /* padding: 8px; */
+  width: 100%;
+
+  -webkit-appearance: none;  /* Override default CSS styles */
+  appearance: none;
+  background: #d9d9d9;
+  border-radius: 8px;
+  border: 1px solid #bfbfbf;
+  height: 16px;
+}
+
+.track-header-volume::-webkit-slider-thumb {
+  -webkit-appearance: none; /* Override default look */
+  appearance: none;
+  border-radius: 50%;
+  border: 1px solid #bfbfbf;
+  width: 20px;
+  height: 20px;
+  background: white;
+}
+
+.track-header-volume::-moz-range-thumb {
+  border-radius: 50%;
+  border: 1px solid #bfbfbf;
+  width: 20px;
+  height: 20px;
+  background: white;
 }
 
 .track-display {
