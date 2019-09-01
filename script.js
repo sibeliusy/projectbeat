@@ -472,11 +472,11 @@ function updateTimelineGraphics() {
 
 	timeline.children(".timeline-beat").children("div").css("display", "none");
 	if (beatPixels < 17) {
-		timeline.children(".timeline-beat:nth-of-type(8n+1)").children("div").css("display", "block");
+		timeline.children(".timeline-beat:nth-of-type(8n+1)").children("div").css("display", "flex");
 	} else if (beatPixels < 34) {
-		timeline.children(".timeline-beat:nth-of-type(4n+1)").children("div").css("display", "block");
+		timeline.children(".timeline-beat:nth-of-type(4n+1)").children("div").css("display", "flex");
 	} else {
-		timeline.children(".timeline-beat").children("div").css("display", "block");
+		timeline.children(".timeline-beat").children("div").css("display", "flex");
 	}
 
 
