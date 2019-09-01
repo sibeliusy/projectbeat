@@ -88,11 +88,11 @@ $(window).keypress(function (e) {
 
 function newTrapBeat() {
 	setTempo(getRandomInt(108, 188));
-	newDrumTrack();
-	new808Track();
+	let $808track = newTrap808Track();
+	newTrapDrumTrack($808track);
 }
 
-function new808Track() {
+function newTrap808Track() {
 	let instrument = new Tone.MembraneSynth({
 		pitchDecay  : 0.01,
 		oscillator  : {
@@ -109,11 +109,11 @@ function new808Track() {
 
 	instrument.toMaster();
 
-	let gain = new Tone.Gain(2).toMaster();
+	let gain = new Tone.Gain(1.5).toMaster();
 	var dist = new Tone.Distortion(0.05).toMaster();
 	instrument.chain(gain, dist);
 
-	let track = new Track(instrument);
+	let track = new Track(instrument, [], "808");
 	tracks.push(track);
 
 	let notes = [];
@@ -126,10 +126,13 @@ function new808Track() {
 	let blocks = [block];
 	track.blocks = blocks;
 
-	createTrackElements(track, "808");
+	console.log("track name is " + track.name);
+	createTrackElements(track);
+
+	return track;
 }
 
-function newDrumTrack() {
+function newTrapDrumTrack($808track) {
 	let instrument = new Tone.Sampler({
 		"72" : "sounds/hihat.wav",
 		"60" : "sounds/snare.wav",
@@ -139,7 +142,7 @@ function newDrumTrack() {
 
 
 	instrument.toMaster();
-	let track = new Track(instrument);
+	let track = new Track(instrument, [], "Drum Sampler");
 	tracks.push(track);
 
 	let notes = [];
@@ -154,6 +157,17 @@ function newDrumTrack() {
 			notes.push(new Note(72, "0:0:" + (2*i + 1.5), "32n"));
 		} else {
 			notes.push(new Note(72, "0:0:" + 2*i, "8n"));
+		}
+	}
+
+	for (let i = 0; i < 16; i++) {
+		if (Math.random() < 0.2 && i % 2 == 1) { //808 doesnt have note at this beat
+			// console.log(Tone.Time("0:0:" + 2*i).toBarsBeatsSixteenths());
+			if (!$808track.blocks[0].notes.some(function(note) {
+				return checkEqualTimes("0:0:" + 2*i, note.position);
+			})) {
+				notes.push(new Note(63, "0:0:" + 2*i, "8n"));
+			}
 		}
 	}
 	notes.push(new Note(59, "0:2", "8n"));
@@ -185,7 +199,7 @@ function newEmptyTrack() {
 	createTrackElements(track, name);
 }
 
-function createTrackElements(track, name = "Untitled Track") {
+function createTrackElements(track) {
 	let trackElement = document.createElement("div");
 	trackElement.classList.add("track");
 	document.getElementById("tracks").appendChild(trackElement);
@@ -197,17 +211,43 @@ function createTrackElements(track, name = "Untitled Track") {
 
 	let trackHandle = document.createElement("div")
 	trackHandle.classList.add("handle");
-	trackHandle.innerHTML = "⋮";
+	// trackHandle.innerHTML = "⋮";
+	// trackHandle.innerHTML = "↕";
+	trackHandle.innerHTML = "⠿";
+	// trackHandle.innerHTML = "⇅";
 	trackHeader.appendChild(trackHandle);
 
-	let trackHeaderInfo = document.createElement("div");
-	trackHeaderInfo.classList.add("track-header-info");
-	trackHeader.appendChild(trackHeaderInfo);
+	let trackInfo = document.createElement("div");
+	trackInfo.classList.add("track-header-info");
+	trackHeader.appendChild(trackInfo);
 
-	let trackHeaderName = document.createElement("input");
-	trackHeaderName.classList.add("track-header-name");
-	trackHeaderName.value = name;
-	trackHeaderInfo.appendChild(trackHeaderName);
+	let trackName = document.createElement("input");
+	trackName.classList.add("track-header-name");
+	trackName.value = track.name;
+	trackInfo.appendChild(trackName);
+
+	let trackVolume = document.createElement("input");
+	trackVolume.classList.add("track-header-volume");
+	trackVolume.type = "range";
+	trackVolume.min = 0;
+	trackVolume.max = 1;
+	trackVolume.step = 0.05;
+	trackVolume.value = 0.75;
+	trackVolume.addEventListener("input", function() {
+		console.log(round(6 / Math.log(4/3) * Math.log(4/3 * this.value), 1));
+		tracks[$(trackElement).index()].instrument.volume.value = round(6 / Math.log(4/3) * Math.log(4/3 * this.value), 1);
+	});
+	trackInfo.appendChild(trackVolume);
+
+	let trackDelete = document.createElement("div");
+	trackDelete.classList.add("track-header-delete");
+	trackDelete.innerHTML = "X";
+	trackDelete.addEventListener("click", function() {
+		tracks.splice($(trackElement).index(), 1);
+		trackElement.remove();
+		updateTransport();
+	})
+	trackInfo.appendChild(trackDelete);
 
 	let trackDisplay = document.createElement("div");
 	trackDisplay.classList.add("track-display");
@@ -370,14 +410,9 @@ function updateTransport() {
 				track.blocks.forEach(function(block) {
 					if (block.notes.length > 0) {
 						block.notes.forEach(function(note) {
-							let pitch = note.pitch;
 							let position = addBBSTimes(currentPosition, note.position);
-							let duration = note.duration;
-
-// 							console.log("pitch: " + pitch + ", position: " + position);
-
 							Tone.Transport.schedule(function(time) {
-								track.instrument.triggerAttackRelease(Tone.Frequency(pitch, "midi").toNote(), duration, time);
+								track.instrument.triggerAttackRelease(Tone.Frequency(note.pitch, "midi").toNote(), note.duration, time);
 							}, position);
 						});
 					}
