@@ -334,7 +334,7 @@ html, body {
 }
 
 .track-block-container {
-	padding: 0px 1px 0 0;
+	/* padding: 0px 1px 0 0; */
 }
 
 .track-block {
@@ -343,6 +343,7 @@ html, body {
 	display: flex;
 	flex-direction: column;
 	height: 100%;
+  margin-right: 1px;
 	overflow: hidden;
 
 	position: relative;
