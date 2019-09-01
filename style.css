@@ -91,6 +91,8 @@ html, body {
 
 #tracks-top {
   display: flex;
+
+  height: 40px;
 }
 
 #tracks-top-left {
@@ -98,6 +100,9 @@ html, body {
   border-bottom: 1px solid #e6e6e6;
   padding: 8px;
   z-index: 3;
+
+  display: flex;
+  align-items: center;
 }
 
 #timeline-wrapper {
@@ -111,6 +116,8 @@ html, body {
   display: flex;
   position: relative;
   width: fit-content;
+
+  height: 100%;
 }
 
 #grayed-out {
@@ -182,6 +189,10 @@ html, body {
 	border-left: 1px solid #e6e6e6;
 	padding: 8px 4px;
 	position: relative;
+
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 
 .timeline-beat.normal {
