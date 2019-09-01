@@ -273,8 +273,9 @@ html, body {
 }
 
 .track-display {
+  /* align-items: center; */
 	display: flex;
-	height: 100px;
+	/* height: 100px; */
 	padding: 8px;
 }
 

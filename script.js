@@ -94,25 +94,32 @@ function newTrapBeat() {
 
 function new808Track() {
 	let instrument = new Tone.MembraneSynth({
-		pitchDecay  : 0 ,
+		pitchDecay  : 0.01,
 		oscillator  : {
 			type  : "sine",
+			partials: [1, 0.35, 0.17, 0.08, 0.03, 0.01]
 		}  ,
 		envelope  : {
-			attack  : 0.01 ,
+			attack  : 0.1,
 			decay  : 0.5,
 			sustain  : 0.3,
-			release  : 2,
+			release  : 3,
 		}
 	});
+
 	instrument.toMaster();
+
+	let gain = new Tone.Gain(2).toMaster();
+	var dist = new Tone.Distortion(0.05).toMaster();
+	instrument.chain(gain, dist);
+
 	let track = new Track(instrument);
 	tracks.push(track);
 
 	let notes = [];
 	for (let i = 0; i < 16; i++) {
 		if (i % 16 == 0 || Math.random() < 0.3) {
-			notes.push(new Note(getRandomInt(30, 42), "0:0:" + 2*i, "8n"));
+			notes.push(new Note(getRandomInt(24, 36), "0:0:" + 2*i, "8n"));
 		}
 	}
 	let block = new Block("2:0:0", notes);
@@ -141,10 +148,10 @@ function newDrumTrack() {
 			notes.push(new Note(72, "0:0:" + 2*i, "16n"));
 			notes.push(new Note(72, "0:0:" + (2*i + 1), "16n"));
 		} else if (Math.random() < 0.1) {
-			notes.push(new Note(74, "0:0:" + 2*i, "32n"));
-			notes.push(new Note(73, "0:0:" + (2*i + 0.5), "32n"));
+			notes.push(new Note(72, "0:0:" + 2*i, "32n"));
+			notes.push(new Note(72, "0:0:" + (2*i + 0.5), "32n"));
 			notes.push(new Note(72, "0:0:" + (2*i + 1), "32n"));
-			notes.push(new Note(71, "0:0:" + (2*i + 1.5), "32n"));
+			notes.push(new Note(72, "0:0:" + (2*i + 1.5), "32n"));
 		} else {
 			notes.push(new Note(72, "0:0:" + 2*i, "8n"));
 		}
@@ -248,6 +255,7 @@ function sortableTrackDisplay(trackDisplay) {
 	Sortable.create(trackDisplay, {
 		animation: 200,
 		group: "blocks",
+		handle: ".track-block",
 		onEnd: function (/**Event*/evt) {
 			console.log($(evt.from).parent().index());
 			moveItemBetweenArrays(tracks[$(evt.from).parent().index()].blocks, evt.oldIndex, tracks[$(evt.to).parent().index()].blocks, evt.newIndex);
