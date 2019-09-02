@@ -14,8 +14,9 @@ function Note(pitch, position, duration = 0, velocity = 1) {
 	this.velocity = velocity;
 }
 
-function Track(instrument, blocks = [], name = "Untitled Track") {
+function Track(instrument, blocks = [], name = "Untitled Track", type = "notype") {
 	this.instrument = instrument;
 	this.blocks = blocks;
 	this.name = name;
+	this.type = type;
 }
