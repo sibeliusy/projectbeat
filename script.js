@@ -1,7 +1,7 @@
 console.clear();
 var tracks = [];
 var maxTime;
-var beatPixels = 100;
+var beatPixels = 60;
 var loopEnd;
 var loopStart;
 
@@ -21,6 +21,7 @@ window.onload = function() {
 		beatPixels = this.value;
 		updateTimelineGraphics();
 		// updateBlockGraphics();
+		redraw();
 	});
 
 
@@ -106,11 +107,12 @@ function newTrap808Track() {
 
 	instrument.toMaster();
 
-	let gain = new Tone.Gain(1.5).toMaster();
+	// let gain = new Tone.Gain(1.5).toMaster();
 	var dist = new Tone.Distortion(0.05).toMaster();
-	instrument.chain(gain, dist);
+	// instrument.chain(gain, dist);
+	instrument.connect(dist);
 
-	let track = new Track(instrument, [], "808");
+	let track = new Track(instrument, [], "808", "midi");
 	tracks.push(track);
 
 	let notes = [];
@@ -139,7 +141,7 @@ function newTrapDrumTrack($808track) {
 
 
 	instrument.toMaster();
-	let track = new Track(instrument, [], "Drum Sampler");
+	let track = new Track(instrument, [], "Drum Sampler", "sampler");
 	tracks.push(track);
 
 	let notes = [];
@@ -181,7 +183,7 @@ function newEmptyTrack() {
 
 	let instrument = new Tone.Synth;
 	instrument.toMaster();
-	let track = new Track(instrument);
+	let track = new Track(instrument, [], "Synth", "midi");
 	tracks.push(track);
 
 	let notes = [];
@@ -199,6 +201,7 @@ function newEmptyTrack() {
 function createTrackElements(track) {
 	let trackElement = document.createElement("div");
 	trackElement.classList.add("track");
+	trackElement.classList.add(track.type);
 	document.getElementById("tracks").appendChild(trackElement);
 
 	let trackHeader = document.createElement("div");
@@ -361,7 +364,8 @@ function updateBlockGraphics() {
 			let scalar = 4;
 			blockCanvas.width = parseFloat($(this).find("canvas").css("width")) * scalar;
 			blockCanvas.height = parseFloat($(this).find("canvas").css("height")) * scalar;
-			ctx.strokeStyle = "#0092cc";
+			// ctx.strokeStyle = "#0092cc";
+			ctx.strokeStyle = "black";
 			ctx.lineWidth = blockCanvas.height / 16;
 
 			let block = tracks[i].blocks[j];
@@ -392,7 +396,7 @@ function updateBlockGraphics() {
 				ctx.beginPath();
 				let y = blockCanvas.height - (0.6*((note.pitch - minPitch) / (maxPitch - minPitch))+0.2)  * blockCanvas.height;
 				ctx.moveTo(notePosition * blockCanvas.width, y);
-				ctx.lineTo((notePosition + noteDuration) * blockCanvas.width - 2 * scalar, y);
+				ctx.lineTo((notePosition + noteDuration) * blockCanvas.width - 1 * scalar, y);
 				ctx.stroke();
 			});
 			blockText.innerHTML = block.name;
@@ -498,14 +502,15 @@ function updateTimelineGraphics() {
 
 function redraw() {
 	// console.log("redrawing");
-	let position = document.getElementById("position");
 	if (Tone.Time(Tone.Transport.position).valueOf() > Tone.Time(maxTime).valueOf() && Tone.Transport.state == "started" && !Tone.Transport.loop) {
 		playPause(document.getElementById("play-pause"));
 		Tone.Transport.position = maxTime;
 	}
-	position.innerHTML = Tone.Transport.position;
+	document.getElementById("position").innerHTML = Tone.Transport.position;
 	$(".playhead-part").css("left", Tone.Time(Tone.Transport.position).valueOf() * Tone.Transport.bpm.value / 60 * beatPixels + parseFloat($("#timeline-wrapper").css('padding-left')) + parseFloat($("#tracks-top-left").css("width"))  + "px");
-	window.requestAnimationFrame(redraw);
+	if (Tone.Transport.state == "started") {
+		window.requestAnimationFrame(redraw);
+	}
 }
 
 function updatePosition(e) {
@@ -517,6 +522,7 @@ function updatePosition(e) {
 	}
 
 	document.getElementById("position").innerHTML = Tone.Transport.position;
+	redraw();
 }
 
 function playPause() {
@@ -530,6 +536,7 @@ function playPause() {
 		Tone.Transport.pause();
 		document.getElementById("play-pause").innerHTML = "play";
 	}
+	redraw();
 }
 
 function setTempo(value) {
