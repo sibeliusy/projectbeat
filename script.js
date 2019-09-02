@@ -76,11 +76,13 @@ window.onload = function() {
 	updateTransport();
 }
 
-$(window).keypress(function (e) {
+$(document).keydown(function (e) {
   if (e.key === ' ' || e.key === 'Spacebar') {
     // ' ' is standard, 'Spacebar' was used by IE9 and Firefox < 37
-    // e.preventDefault();
-    playPause();
+		if(!$(e.target).is(':input')){
+    	playPause();
+			e.preventDefault();
+		}
   }
 })
 
@@ -298,6 +300,10 @@ function sortableTrackDisplay(trackDisplay) {
 		handle: ".track-block",
 		multiDrag: true,
 		selectedClass: "selected",
+		// onStart: function(evt) {
+		// 	console.log(evt.item);
+		// 	$(evt.item).addClass("selected");
+		// },
 		onEnd: function (/**Event*/evt) {
 			let oldBlockArray = tracks[$(evt.from).parent().index()].blocks;
 			let newBlockArray = tracks[$(evt.to).parent().index()].blocks;
@@ -331,23 +337,20 @@ function moveItemBetweenArrays(oldArray, oldIndex, newArray, newIndex) {
 
 function updateBlockGraphics() {
 
-	// $(".track-block-container").on("touchstart dragstart", function(e){ //touchstart, dragstart too?
-	// 	if (e.type == "touchstart" || e.type == "click") {
-	// 		e.stopImmediatePropagation();
-	// 		e.stopPropagation();
-	// 		e.preventDefault();
-	// 	}
-	// 	console.log(e.type);
-	// 	// $(".track-block-container").not($(this)).removeClass("selected");
-	// 	// $(this).addClass("selected");
+	// $(".track-block-container").on("click", function(e){ //click, touchstart, dragstart too?
+	// 	e.stopPropagation();
+	// 	// console.log(e.type);
+	// 	// console.log(this);
 	// 	$(this).toggleClass("selected");
 	// });
 	//
 	// $("#tracks-area").on("click", function(evt){ //touchstart too?
-	// 	console.log("should deselect");
-	// 	evt.stopImmediatePropagation();
-	// 	$(".track-block-container").not($(this)).removeClass("selected");
-	// 	$(this).toggleClass("selected");
+	// 	if(!$(evt.target).is(".track-block-container")) {
+	// 		console.log("should deselect");
+	// 		evt.stopImmediatePropagation();
+	// 		$(".track-block-container").not($(this)).removeClass("selected");
+	// 		$(this).toggleClass("selected");
+	// 	}
 	// });
 
 
