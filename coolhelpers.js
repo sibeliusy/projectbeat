@@ -24,3 +24,25 @@ function round(value, precision) {
     var multiplier = Math.pow(10, precision || 0);
     return Math.round(value * multiplier) / multiplier;
 }
+
+Array.prototype.getWeightedRandomItem = function(relativePs) {
+  let totalP = 0;
+  relativePs.forEach(function(p) {
+    totalP += p;
+  });
+
+  let randomP = Math.random() * totalP;
+  let currentP = 0;
+  for (let i = 0; i < this.length; i++) {
+    currentP += relativePs[i];
+    if (randomP < currentP) {
+      return this[i];
+    }
+  }
+  // return 0;
+}
+
+Array.prototype.rotateRight = function( n ) {
+  this.unshift.apply( this, this.splice( n, this.length ) );
+  return this;
+}
