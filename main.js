@@ -2,20 +2,32 @@ console.clear();
 
 var $ = require("jquery");
 
-var myUniqueList = require("./npmtest.js");
-console.log(myUniqueList);
-console.log("do i have to flex too hard");
-
+var key = 0;
 var tracks = [];
 var maxTime;
 var beatPixels = 60;
 var loopEnd;
 var loopStart;
 
+// console.log(getWeightedRandomItem([0, 1, 2, 3], [0, 1, 0.5, 2]));
+
 window.onload = function() {
 	console.log("flexion started");
 
 	window.requestAnimationFrame(redraw);
+
+	// let keys = "ABCDEFG";
+	let keySelector = document.getElementById("key");
+	for (let i = 0; i < 12; i++) {
+		let option = document.createElement("option");
+		option.value = i;
+		option.innerHTML = i;
+		keySelector.appendChild(option);
+	}
+	keySelector.addEventListener("change", function() {
+		setKey(this.value);
+	});
+
 
 	document.getElementById("tempo-number").addEventListener("change", function() {
 		setTempo(this.value);
@@ -73,7 +85,7 @@ window.onload = function() {
 	});
 
 	document.getElementById("new-beat").addEventListener("click", function() {
-		newTrapBeat();
+		genTrapBeat();
 	});
 
 // 	newEmptyTrack();
@@ -93,21 +105,92 @@ $(document).keydown(function (e) {
   }
 })
 
-function newTrapBeat() {
+function genTrapBeat() {
+	setKey(getRandomInt(0, 12));
 	setTempo(getRandomInt(108, 188));
-	let $808track = newTrap808Track();
-	newTrapDrumTrack($808track);
+	let chords = genTrapChords();
+	genTrapHarmony(chords);
+	let $808track = genTrap808Track(chords);
+	genTrapDrumTrack($808track);
 }
 
-function newTrap808Track() {
+function genTrapChords() {
+	let diatonicTriads = [
+		[0, 4, 7],
+		[2, 5, 9],
+		[4, 7, 11],
+		[5, 9, 12],
+		[7, 11, 14],
+		[9, 12, 16],
+		[11, 14, 17]
+	];
+	let chords = [];
+	for (let i = 0; i < 4; i++) {
+		chords.push(diatonicTriads.getWeightedRandomItem([1, 1, 1.5, 1, 1, 2.5, 0]));
+	}
+	return chords;
+}
+
+function genTrapHarmony(chords) {
+	let instrument = new Tone.PolySynth();
+	// instrument.toMaster();
+
+	let vibrato = new Tone.Vibrato(Math.random() * 8, Math.random() * 0.4);
+	let autoPanner = new Tone.AutoPanner("8n");
+	let reverb = new Tone.Reverb(Math.random());
+	reverb.generate();
+	let feedbackDelay = new Tone.FeedbackDelay("8n", Math.random() * 0.5).toMaster();
+	instrument.chain(reverb, Tone.Master);
+	instrument.chain(vibrato, Tone.Master);
+	// instrument.connect(reverb);
+	// instrument.connect(autoPanner);
+	instrument.chain(autoPanner, Tone.Master);
+	// instrument.connect(vibrato);
+	// instrument.toMaster();
+
+	let track = new Track(instrument, [], "PolySynth", "midi");
+	tracks.push(track);
+
+	let invertChord = function(chord, inversion) {
+		let invertedChord = [];
+		chord.forEach(function(note, i) {
+			if (i < inversion) {
+				invertedChord.push(note + 12);
+			} else {
+				invertedChord.push(note);
+			}
+		});
+		return invertedChord.rotateRight(inversion);
+	}
+
+	let invertedChords = [];
+	chords.forEach(function(chord) {
+		invertedChords.push(invertChord(chord, [0,1,2].getWeightedRandomItem([1, 1, 1])));
+	});
+	console.log(invertedChords);
+
+	let notes = [];
+	for (let i = 0; i < 4; i++) {
+		invertedChords[i].forEach(function(note) {
+			notes.push(new Note(48 + key + note, "0:" + 2*i + ":0", "8n."));
+		});
+	}
+	let block = new Block("2:0:0", notes);
+	let blocks = [block];
+	track.blocks = blocks;
+
+	createTrackElements(track);
+}
+
+function genTrap808Track(chords) {
 	let instrument = new Tone.MembraneSynth({
-		pitchDecay  : 0.01,
+		pitchDecay  : 0.005,
 		oscillator  : {
 			type  : "sine",
 			partials: [1, 0.35, 0.17, 0.08, 0.03, 0.01]
 		}  ,
 		envelope  : {
-			attack  : 0.1,
+			attack  : 0.05,
 			decay  : 0.5,
 			sustain  : 0.3,
 			release  : 3,
@@ -116,10 +199,11 @@ function newTrap808Track() {
 
 	instrument.toMaster();
 
-	// let gain = new Tone.Gain(1.5).toMaster();
+	let gain = new Tone.Gain(1.5).toMaster();
 	var dist = new Tone.Distortion(0.05).toMaster();
-	// instrument.chain(gain, dist);
-	instrument.connect(dist);
+	instrument.chain(gain, dist);
+	// instrument.connect(dist);
+	// instrument.connect(gain);
 
 	let track = new Track(instrument, [], "808", "midi");
 	tracks.push(track);
@@ -127,7 +211,8 @@ function newTrap808Track() {
 	let notes = [];
 	for (let i = 0; i < 16; i++) {
 		if (i % 16 == 0 || Math.random() < 0.3 && i % 8 != 4) {
-			notes.push(new Note(getRandomInt(24, 36), "0:0:" + 2*i, "8n"));
+			let probablities = (i == 0 ? [1, 0, 0] : [2, 1, 1]);
+			notes.push(new Note(24 + (key + chords[Math.floor(i / 4)].getWeightedRandomItem(probablities) )%12, "0:0:" + 2*i, "8n"));
 		}
 	}
 	let block = new Block("2:0:0", notes);
@@ -140,7 +225,7 @@ function newTrap808Track() {
 	return track;
 }
 
-function newTrapDrumTrack($808track) {
+function genTrapDrumTrack($808track) {
 	let instrument = new Tone.Sampler({
 		"72" : "sounds/hihat.wav",
 		"60" : "sounds/snare.wav",
@@ -553,6 +638,11 @@ function setTempo(value) {
 	document.getElementById("tempo-number").value = value;
 	document.getElementById("tempo-range").value = value;
 	Tone.Transport.bpm.value = value;
+}
+
+function setKey(value) {
+	document.getElementById("key").value = value;
+	key = value;
 }
 
 function setLoop(start, end) {
