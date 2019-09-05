@@ -61,8 +61,8 @@ function ChordBlock(chords = []) {
 
 	this.subdivide = function(subdivision) { //subdivision is in bbs
 		let newChords = [];
-		chords.forEach(function(chord) {
-			for (let i = 0; i < fromBBStoBeats(chord.duration) / fromBBStoBeats(subdivision); i++) {
+		this.chords.forEach(function(chord) {
+			for (let i = 0; i < Math.round(fromBBStoBeats(chord.duration) / fromBBStoBeats(subdivision)); i++) {
 				newChords.push(new Chord(chord.notes, subdivision));
 			}
 		});
