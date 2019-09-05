@@ -10,6 +10,8 @@ var loop;
 var loopEnd;
 var loopStart;
 
+var drumSamples = [new Tone.Buffer("sounds/hihat.wav"), new Tone.Buffer("sounds/snare.wav"), new Tone.Buffer("sounds/clap.wav")];
+
 main();
 
 // console.log(getWeightedRandomItem([0, 1, 2, 3], [0, 1, 0.5, 2]));
@@ -112,17 +114,21 @@ $(document).keydown(function (e) {
 })
 
 function genTrapBeat() {
-	Tone.Transport.position = "0:0:0";
-	redraw();
 	let duration = [1, 2, 4].getWeightedRandomItem([13, 2, 1]);
 	setLoop("0:0:0", duration + ":0:0");
 	setKey(getRandomInt(0, 12));
-	setTempo(getRandomInt(54, 94));
+	let tempoBuckets = [];
+	for (let i = 55; i <= 95; i += 5) {
+		tempoBuckets.push(i);
+	}
+	setTempo(tempoBuckets.getWeightedRandomItem([4, 4, 13, 16, 23, 9, 1, 0, 2]) + getRandomInt(0, 5));
 	let chordBlock = genTrapChords(duration);
 	genTrapHarmony(chordBlock);
 	let subdividedChordBlock = chordBlock.subdivide("0:0:1");
 	let $808track = genTrap808Track(subdividedChordBlock);
 	genTrapDrumTrack(subdividedChordBlock, $808track);
+	Tone.Transport.position = "0:0:0";
+	redraw();
 }
 
 function genTrapChords(duration) {
@@ -154,18 +160,7 @@ function genTrapChords(duration) {
 			chordBlock.add(new Chord(diatonicTriads.getWeightedRandomItem([0.5, 0.5, 0.5, 1, 1, 3, 0]), durations[i % durations.length]));
 		}
 	}
-	console.log(chordBlock);
 	return chordBlock;
-
-	// let chords = [];
-	// for (let i = 0; i < 4; i++) {
-	// 	if (i == 0) {
-	// 		chords.push(diatonicTriads.getWeightedRandomItem([0.02, 0.02, 0.02, 0.15, 0.2, 0.75, 0]));
-	// 	} else {
-	// 		chords.push(diatonicTriads.getWeightedRandomItem([0.5, 0.5, 0.5, 1, 1, 3, 0]));
-	// 	}
-	// }
-	// return chords;
 }
 
 function genTrapHarmony(chordBlock) {
@@ -182,10 +177,9 @@ function genTrapHarmony(chordBlock) {
 	});
 
 
-	let vibrato = new Tone.Vibrato(Math.random() * 8, Math.random() * 0.2);
-	let feedbackDelay = new Tone.FeedbackDelay("8n", Math.random() * 0.5).toMaster();
+	let feedbackDelay = new Tone.FeedbackDelay("8n", Math.random() * 0.25).toMaster();
 	var filter = new Tone.Filter(500 + Math.random() * 1000, "lowpass", -24).toMaster();
-	instrument.chain(vibrato, filter, Tone.Master);
+	instrument.chain(filter, Tone.Master);
 	instrument.connect(filter);
 
 	let track = new Track(instrument, [], "PolySynth", "midi");
@@ -200,7 +194,7 @@ function genTrapHarmony(chordBlock) {
 	let notes = [];
 	let currentPosition = "0:0:0";
 	for (let i = 0; i < chordBlock.size(); i++) {
-		let octave = (Math.random() < 0.7 ? 0 : 12);
+		let octave = (Math.random() < 0.7 ? 0 : -12);
 		let duration = invertedChordBlock.get(i).duration;
 		invertedChordBlock.get(i).notes.forEach(function(note) {
 			notes.push(new Note(48 + octave + (key + note), currentPosition, "8n"));
@@ -258,9 +252,9 @@ function genTrap808Track(subdividedChordBlock) {
 
 function genTrapDrumTrack(subdividedChordBlock, $808track) {
 	let instrument = new Tone.Sampler({
-		"72" : "sounds/hihat.wav",
-		"60" : "sounds/snare.wav",
-		"59" : "sounds/clap.wav"
+		"72" : drumSamples[0],
+		"60" : drumSamples[1],
+		"59" : drumSamples[2]
 	});
 	// let instrument = new Tone.PolySynth();
 
@@ -274,7 +268,7 @@ function genTrapDrumTrack(subdividedChordBlock, $808track) {
 		if (Math.random() < 0.1) {
 			notes.push(new Note(72, "0:0:" + i, "32n"));
 			notes.push(new Note(72, "0:0:" + (i + 0.5), "32n"));
-		} else if (Math.random() < 0.1) {
+		} else if (Math.random() < 0.05) {
 			notes.push(new Note(72, "0:0:" + i, "64n"));
 			notes.push(new Note(72, "0:0:" + (i + 0.25), "64n"));
 			notes.push(new Note(72, "0:0:" + (i + 0.5), "64n"));
@@ -292,7 +286,6 @@ function genTrapDrumTrack(subdividedChordBlock, $808track) {
 			}
 		}
 
-		console.log("i=" + i);
 		if (i % 8 == 4) {
 			notes.push(new Note(59, "0:0:" + i, "16n"));
 		}
