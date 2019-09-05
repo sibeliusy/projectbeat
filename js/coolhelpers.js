@@ -46,3 +46,9 @@ Array.prototype.rotateRight = function( n ) {
   this.unshift.apply( this, this.splice( n, this.length ) );
   return this;
 }
+
+function moveItemBetweenArrays(oldArray, oldIndex, newArray, newIndex) {
+	let movingItem = oldArray[oldIndex]
+	oldArray.splice(oldIndex, 1);
+	newArray.splice(newIndex, 0, movingItem);
+}
