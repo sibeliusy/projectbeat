@@ -22,7 +22,7 @@ function main() {
 	window.requestAnimationFrame(redraw);
 
 	// Tone.Transport.loop = true;
-	setLoop("0:0:0", "1:0:0");
+	// setLoop("0:0:0", "1:0:0");
 
 	// let keys = "ABCDEFG";
 	let keySelector = document.getElementById("key");
@@ -59,6 +59,7 @@ function main() {
 	document.getElementById("beginning").addEventListener("click", function() {
 		Tone.Transport.position = "0:0:0";
 		document.getElementById("position").innerHTML = Tone.Transport.position;
+		redraw();
 	});
 
 	Sortable.create(document.getElementById("tracks"), {
@@ -114,24 +115,83 @@ $(document).keydown(function (e) {
 })
 
 function genTrapBeat() {
-	let duration = [1, 2, 4].getWeightedRandomItem([13, 2, 1]);
-	setLoop("0:0:0", duration + ":0:0");
 	setKey(getRandomInt(0, 12));
+
 	let tempoBuckets = [];
 	for (let i = 55; i <= 95; i += 5) {
 		tempoBuckets.push(i);
 	}
 	setTempo(tempoBuckets.getWeightedRandomItem([4, 4, 13, 16, 23, 9, 1, 0, 2]) + getRandomInt(0, 5));
-	let chordBlock = genTrapChords(duration);
-	genTrapHarmony(chordBlock);
-	let subdividedChordBlock = chordBlock.subdivide("0:0:1");
-	let $808track = genTrap808Track(subdividedChordBlock);
-	genTrapDrumTrack(subdividedChordBlock, $808track);
+
+	let duration = [1, 2, 4].getWeightedRandomItem([1, 1, 1]);
+	setLoop("0:0:0", duration + ":0:0");
+
+	let cdPoss = [0.5, 1, 2, 4].filter(num => num <= duration);
+	let cdWeights = [1, 1, 1, 1].slice(0, cdPoss.length);
+	let chordBlockDuration = cdPoss.getWeightedRandomItem(cdWeights);
+	console.log("Chord block duration is" + chordBlockDuration);
+
+	// let $808dPoss = [1, 2, 4].filter(num => num <= duration);
+	// let $808dWeights = [1, 1, 1].slice(0, $808dPoss.length);
+	// let $808RhythmDuration = $808dPoss.getWeightedRandomItem($808dWeights);
+	let $808RhythmDuration = [1, 2, 4].getWeightedRandomItem([1, 1, 1]); // can go over total duration, but will be clipped
+	console.log("$808RhythmDuration: " + $808RhythmDuration);
+
+	genTrapDrumTrack(duration);
+	let chordBlock = genTrapChords(duration, chordBlockDuration);
+	genTrapHarmony(duration, chordBlock, chordBlockDuration);
+	// let subdividedChordBlock = chordBlock.subdivide("0:0:1");
+	let $808track = genTrap808Track(duration, chordBlock, chordBlockDuration, $808RhythmDuration);
 	Tone.Transport.position = "0:0:0";
 	redraw();
 }
 
-function genTrapChords(duration) {
+function genTrapDrumTrack(duration) {
+	let instrument = new Tone.Sampler({
+		"72" : drumSamples[0],
+		"60" : drumSamples[1],
+		"59" : drumSamples[2]
+	});
+	// let instrument = new Tone.PolySynth();
+
+
+	instrument.toMaster();
+	let track = new Track(instrument, [], "Drum Sampler", "sampler");
+	tracks.push(track);
+
+	let notes = [];
+	for (let i = 0; i < 16; i++) {
+		if (Math.random() < 0.1) {
+			notes.push(new Note(72, "0:0:" + i, "32n"));
+			notes.push(new Note(72, "0:0:" + (i + 0.5), "32n"));
+		} else if (Math.random() < 0.02) {
+			notes.push(new Note(72, "0:0:" + i, "64n"));
+			notes.push(new Note(72, "0:0:" + (i + 0.25), "64n"));
+			notes.push(new Note(72, "0:0:" + (i + 0.5), "64n"));
+			notes.push(new Note(72, "0:0:" + (i + 0.75), "64n"));
+		} else {
+			notes.push(new Note(72, "0:0:" + i, "16n"));
+		}
+
+		if (Math.random() < 0.2 && i % 2 == 1) {
+			notes.push(new Note(61, "0:0:" + i, "16n"));
+		}
+
+		if (i % 8 == 4) {
+			notes.push(new Note(59, "0:0:" + i, "16n"));
+		}
+	}
+	let block = new Block("1:0:0", notes, track.name);
+	let blocks = [];
+	for (let i = 0; i < duration; i++) {
+		blocks.push(block.clone());
+	}
+	track.blocks = blocks;
+
+	createTrackElements(track, "Drum Sampler");
+}
+
+function genTrapChords(duration, chordBlockDuration) {
 	let diatonicTriads = [
 		[0, 4, 7],
 		[2, 5, 9],
@@ -144,26 +204,22 @@ function genTrapChords(duration) {
 
 
 	let chordBlock = new ChordBlock();
-	let numChords = [2, 3, 4].getWeightedRandomItem([1, 1]);
-	let durations;
-	if (numChords == 2) {
-		durations = ["0:2:0", "0:2:0"];
-	} else if (numChords == 3) {
-		durations = ["0:1:2", "0:1:2", "0:1:0"];
-	} else if (numChords == 4) {
-		durations = ["0:1:0", "0:1:0", "0:1:0", "0:1:0"];
+	let numChords = chordBlockDuration * 2;
+	let durations = [];
+	for (let i = 0; i < numChords; i++) {
+		durations.push("0:2:0");
 	}
-	for (let i = 0; i < numChords * duration; i++) {
-		if (i % numChords == 0) {
-			chordBlock.add(new Chord(diatonicTriads.getWeightedRandomItem([0.02, 0.02, 0.02, 0.15, 0.2, 0.75, 0]), durations[i % durations.length]));
+	for (let i = 0; i < numChords; i++) {
+		if (i == 0) {
+			chordBlock.add(new Chord(diatonicTriads.getWeightedRandomItem([0.02, 0.02, 0.02, 0.15, 0.2, 0.75, 0]), durations[i]));
 		} else {
-			chordBlock.add(new Chord(diatonicTriads.getWeightedRandomItem([0.5, 0.5, 0.5, 1, 1, 3, 0]), durations[i % durations.length]));
+			chordBlock.add(new Chord(diatonicTriads.getWeightedRandomItem([0.5, 0.5, 0.5, 1, 1, 3, 0]), durations[i]));
 		}
 	}
 	return chordBlock;
 }
 
-function genTrapHarmony(chordBlock) {
+function genTrapHarmony(duration, chordBlock, chordBlockDuration) {
 	let instrument = new Tone.PolySynth(4, Tone.Synth, {
 		oscillator  : {
 			type  : "triangle"
@@ -177,10 +233,8 @@ function genTrapHarmony(chordBlock) {
 	});
 
 
-	let feedbackDelay = new Tone.FeedbackDelay("8n", Math.random() * 0.25).toMaster();
 	var filter = new Tone.Filter(500 + Math.random() * 1000, "lowpass", -24).toMaster();
 	instrument.chain(filter, Tone.Master);
-	instrument.connect(filter);
 
 	let track = new Track(instrument, [], "PolySynth", "midi");
 	tracks.push(track);
@@ -197,18 +251,21 @@ function genTrapHarmony(chordBlock) {
 		let octave = (Math.random() < 0.7 ? 0 : -12);
 		let duration = invertedChordBlock.get(i).duration;
 		invertedChordBlock.get(i).notes.forEach(function(note) {
-			notes.push(new Note(48 + octave + (key + note), currentPosition, "8n"));
+			notes.push(new Note(60 + octave + (key + note), currentPosition, "8n"));
 		});
 		currentPosition = addBBSTimes(currentPosition, duration);
 	}
-	let block = new Block(chordBlock.duration, notes);
-	let blocks = [block];
+	let block = new Block(chordBlock.duration, notes, "Harmony");
+	let blocks = [];
+	for (let i = 0; i < duration / chordBlockDuration; i++) {
+		blocks.push(block.clone());
+	}
 	track.blocks = blocks;
 
 	createTrackElements(track);
 }
 
-function genTrap808Track(subdividedChordBlock) {
+function genTrap808Track(duration, chordBlock, chordBlockDuration, $808RhythmDuration) {
 	let instrument = new Tone.MembraneSynth({
 		pitchDecay  : 0.005,
 		oscillator  : {
@@ -232,69 +289,108 @@ function genTrap808Track(subdividedChordBlock) {
 	let track = new Track(instrument, [], "808", "midi");
 	tracks.push(track);
 
+	let subdividedChordBlock = chordBlock.subdivide("0:0:1");
+	// console.log("sub");
+	// console.log(subdividedChordBlock);
 
-	let notes = [];
-	for (let i = 0; i < subdividedChordBlock.size(); i++) {
-		if (i % 16 == 0 || Math.random() < 0.2 && i % 8 != 4) {
-			let probablities = (i == 0 ? [1, 0, 0] : [2, 1, 1]);
-			let note = subdividedChordBlock.get(i).notes.getWeightedRandomItem(probablities);
-			notes.push(new Note(24 + (key + note) %12, "0:0:" + i, "16n"));
-		}
+	function genPitch(i) {
+		let probablities = (i == 0 ? [1, 0, 0] : [2, 1, 1]);
+		let pitch = key + subdividedChordBlock.getMod(i).notes.getWeightedRandomItem(probablities);
+		return 24 + 0 + (pitch) % 12;
 	}
-	// console.log(notes);
-	let block = new Block(subdividedChordBlock.duration, notes);
-	let blocks = [block];
-	track.blocks = blocks;
-	createTrackElements(track);
 
-	return track;
-}
+	let bar;
 
-function genTrapDrumTrack(subdividedChordBlock, $808track) {
-	let instrument = new Tone.Sampler({
-		"72" : drumSamples[0],
-		"60" : drumSamples[1],
-		"59" : drumSamples[2]
-	});
-	// let instrument = new Tone.PolySynth();
+	Block.prototype.revise = function() {
+		let newBlock = this.clone();
+		newBlock.notes.forEach(function(note) {
+			note.pitch = genPitch(bar * 16 + fromBBStoBeats(note.position) * 4);
+		});
+		return newBlock;
+	}
 
-
-	instrument.toMaster();
-	let track = new Track(instrument, [], "Drum Sampler", "sampler");
-	tracks.push(track);
-
-	let notes = [];
-	for (let i = 0; i < subdividedChordBlock.size(); i++) {
-		if (Math.random() < 0.1) {
-			notes.push(new Note(72, "0:0:" + i, "32n"));
-			notes.push(new Note(72, "0:0:" + (i + 0.5), "32n"));
-		} else if (Math.random() < 0.05) {
-			notes.push(new Note(72, "0:0:" + i, "64n"));
-			notes.push(new Note(72, "0:0:" + (i + 0.25), "64n"));
-			notes.push(new Note(72, "0:0:" + (i + 0.5), "64n"));
-			notes.push(new Note(72, "0:0:" + (i + 0.75), "64n"));
-		} else {
-			notes.push(new Note(72, "0:0:" + i, "16n"));
-		}
-
-		if (Math.random() < 0.2 && i % 2 == 1) { //808 doesnt have note at this beat
-			// console.log(Tone.Time("0:0:" + 2*i).toBarsBeatsSixteenths());
-			if (!$808track.blocks[0].notes.some(function(note) {
-				return checkEqualTimes("0:0:" + i, note.position);
-			})) {
-				notes.push(new Note(63, "0:0:" + i, "16n"));
+	Block.prototype.derive = function() {
+		let newBlock = this.clone();
+		for (let i = 0; i < 16; i++) {
+			if (!newBlock.hasNoteAt("0:0:" + i) && Math.random() < (1/3 * 1/64 * Math.pow(i-8, 2) + 0.1) && i % 8 != 4) { //more likely to add at end, beginning
+				newBlock.notes.push(new Note(genPitch(bar * 16 + i), "0:0:" + i, "16n"));
 			}
 		}
+		return newBlock;
+	}
 
-		if (i % 8 == 4) {
-			notes.push(new Note(59, "0:0:" + i, "16n"));
+	let notes = [];
+	for (let i = 0; i < 16; i++) { //gen block a
+		if (i % 16 == 0 || Math.random() < 0.2 && i % 8 != 4) {
+			let pitch = genPitch(i);
+			notes.push(new Note(pitch, "0:0:" + i, "16n"));
 		}
 	}
-	let block = new Block(subdividedChordBlock.duration, notes);
-	let blocks = [block];
-	track.blocks = blocks;
 
-	createTrackElements(track, "Drum Sampler");
+	let a;
+	let b;
+	let c;
+	let d;
+
+	a = new Block("1:0:0", notes, "808");
+
+	bar = 1; //gen b
+	if ($808RhythmDuration == 1) {
+		if (chordBlockDuration < 2) {
+			b = a.clone();
+		} else {
+			b = a.revise();
+		}
+	} else {
+		if (chordBlockDuration < 2) {
+			b = a.derive();
+		} else {
+			b = a.revise().derive();
+		}
+	}
+
+	bar = 2; //gen c
+	if (chordBlockDuration < 4) {
+		c = a.clone();
+	} else {
+		c = a.revise();
+	}
+
+	bar = 3; //gen d
+	if (chordBlockDuration <= 1) {
+		if ($808RhythmDuration == 1) {
+			d = a.clone();
+		} else if ($808RhythmDuration == 2) {
+			d = b.clone();
+		} else {
+			d = a.derive();
+		}
+	} else if (chordBlockDuration == 2) {
+		if ($808RhythmDuration <= 2) {
+			d = b.clone();
+		} else {
+			d = a.revise().derive();
+		}
+	} else {
+		if ($808RhythmDuration == 1) {
+			d = a.revise();
+		} else if ($808RhythmDuration == 2) {
+			d = b.revise();
+		} else {
+			d = a.revise().derive();
+		}
+	}
+
+
+	// b = a.revise(1);
+	// c = a.derive(2);
+	// d = a.revise(3).derive(3);
+
+	track.blocks = [a, b, c, d].slice(0, duration);
+	createTrackElements(track);
+	// console.log(track.blocks);
+
+	return track;
 }
 
 function newEmptyTrack() {

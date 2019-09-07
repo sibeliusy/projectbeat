@@ -2,8 +2,24 @@ function Block(duration, notes = [], name = "Untitled Block") {
 	this.duration = duration;
 	this.notes = notes;
 	this.name = name;
-	this.copy = function() {
-		return new Block(this.duration, this.notes, this.name);
+	this.clone = function() {
+		return new Block(this.duration, this.notes.map(note => note.clone()), this.name);
+	}
+	this.hasNoteAt = function(position) {
+		// console.log("psiton is " + Tone.Time(position).toBarsBeatsSixteenths());
+		return this.notes.some(function(note) {
+			// console.log("note psiton is " + Tone.Time(note.position).toBarsBeatsSixteenths());
+			return checkEqualTimes(note.position, position);
+		});
+	}
+	this.getNoteAt = function(position) {
+		for (let i = 0; i < this.notes.length; i++) {
+			let note = this.notes[i];
+			if (checkEqualTimes(note.position, position)) {
+				return note;
+			}
+		}
+		return false;
 	}
 }
 
@@ -12,6 +28,9 @@ function Note(pitch, position, duration, velocity = 1) {
 	this.position = position;
 	this.duration = duration;
 	this.velocity = velocity;
+	this.clone = function() {
+		return new Note(this.pitch, this.position, this.duration, this.velocity);
+	}
 }
 
 function Track(instrument, blocks = [], name = "Untitled Track", type = "notype") {
@@ -53,6 +72,10 @@ function ChordBlock(chords = []) {
 
 	this.get = function(index) {
 		return this.chords[index];
+	}
+
+	this.getMod = function(index) {
+		return this.get(index % this.size());
 	}
 
 	this.size = function() {
