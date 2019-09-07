@@ -22,10 +22,18 @@ function main() {
 
 	window.requestAnimationFrame(redraw);
 
-	// Tone.Transport.loop = true;
-	// setLoop("0:0:0", "1:0:0");
+	var masterCompressor = new Tone.Compressor({
+		"threshold" : -12,
+		"ratio" : 3,
+		"attack" : 0.01,
+		"release" : 0.1
+	});
+	//give a little boost to the lows
+	var lowBump = new Tone.Filter(200, "lowshelf");
+	//route everything through the filter
+	//and compressor before going to the speakers
+	Tone.Master.chain(lowBump, masterCompressor);
 
-	// let keys = "ABCDEFG";
 	let keySelector = document.getElementById("key");
 	for (let i = 0; i < 12; i++) {
 		let option = document.createElement("option");
@@ -233,8 +241,8 @@ function genTrapHarmony(duration, chordBlock, chordBlockDuration) {
 		}
 	});
 
-
-	var filter = new Tone.Filter(500 + Math.random() * 1000, "lowpass", -24).toMaster();
+	// instrument.toMaster();
+	var filter = new Tone.Filter(500 + Math.random() * 1000, "lowpass", -12).toMaster();
 	instrument.chain(filter, Tone.Master);
 
 	let track = new Track(instrument, [], "PolySynth", "midi");
@@ -249,10 +257,9 @@ function genTrapHarmony(duration, chordBlock, chordBlockDuration) {
 	let notes = [];
 	let currentPosition = "0:0:0";
 	for (let i = 0; i < chordBlock.size(); i++) {
-		let octave = (Math.random() < 0.7 ? 0 : -12);
 		let duration = invertedChordBlock.get(i).duration;
 		invertedChordBlock.get(i).notes.forEach(function(note) {
-			notes.push(new Note(60 + octave + (key + note), currentPosition, "8n"));
+			notes.push(new Note(48 + (key + note), currentPosition, "8n"));
 		});
 		currentPosition = addBBSTimes(currentPosition, duration);
 	}
@@ -388,6 +395,12 @@ function genTrap808Track(duration, chordBlock, chordBlockDuration, $808RhythmDur
 	// d = a.revise(3).derive(3);
 
 	track.blocks = [a, b, c, d].slice(0, duration);
+	console.log("track blocks orig");
+	console.log(track.blocks);
+	while (track.blocks.length > 1) {
+		track.blocks.splice(0, 2, track.blocks[0].concat(track.blocks[1]));
+	}
+
 	createTrackElements(track);
 	// console.log(track.blocks);
 
