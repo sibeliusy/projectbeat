@@ -42,11 +42,13 @@ function Note(pitch, position, duration, velocity = 1) {
 	}
 }
 
-function Track(instrument, blocks = [], name = "Untitled Track", type = "notype") {
+function Track(instrument, blocks = [], name = "Untitled Track", type = "notype", inum=0) {
 	this.instrument = instrument;
 	this.blocks = blocks;
 	this.name = name;
 	this.type = type;
+
+	this.inum = inum;
 }
 
 function Chord(notes, duration) {

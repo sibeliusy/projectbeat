@@ -1,6 +1,10 @@
 console.clear();
 
 var $ = require("jquery");
+// var MidiWriter = require('midi-writer-js');
+// const fs = require('browserify-fs');
+// const http = require('http');
+const fileSaver = require("file-saver");
 
 var key = 0;
 var tracks = [];
@@ -21,17 +25,8 @@ function main() {
 
 	window.requestAnimationFrame(redraw);
 
-	var masterCompressor = new Tone.Compressor({
-		"threshold" : -12,
-		"ratio" : 3,
-		"attack" : 0.01,
-		"release" : 0.1
-	});
-	//give a little boost to the lows
-	var lowBump = new Tone.Filter(200, "lowshelf");
-	//route everything through the filter
-	//and compressor before going to the speakers
-	Tone.Master.chain(lowBump, masterCompressor);
+	var masterCompressor = new Tone.Limiter(-12);
+	Tone.Master.chain(masterCompressor);
 
 	let keySelector = document.getElementById("key");
 	for (let i = 0; i < 12; i++) {
@@ -44,6 +39,10 @@ function main() {
 		setKey(this.value);
 	});
 
+
+	document.getElementById("download-midi").addEventListener("click", function() {
+		updateMidiFile();
+	});
 
 	document.getElementById("tempo-number").addEventListener("change", function() {
 		setTempo(this.value);
@@ -155,38 +154,41 @@ function genTrapBeat() {
 }
 
 function genTrapDrumTrack(duration) {
+	let hihatNum = 42;
+	let snareNum = 40;
+	let clapNum = 39;
 	let instrument = new Tone.Sampler({
-		"72" : drumSamples[0],
-		"60" : drumSamples[1],
-		"59" : drumSamples[2]
+		"42" : drumSamples[0],
+		"40" : drumSamples[1],
+		"39" : drumSamples[2]
 	});
 	// let instrument = new Tone.PolySynth();
 
 
 	instrument.toMaster();
-	let track = new Track(instrument, [], "Drum Sampler", "sampler");
+	let track = new Track(instrument, [], "Drum Sampler", "sampler", 113);
 	tracks.push(track);
 
 	let notes = [];
 	for (let i = 0; i < 16; i++) {
 		if (Math.random() < 0.1) {
-			notes.push(new Note(72, "0:0:" + i, "32n"));
-			notes.push(new Note(72, "0:0:" + (i + 0.5), "32n"));
+			notes.push(new Note(hihatNum, "0:0:" + i, "32n"));
+			notes.push(new Note(hihatNum, "0:0:" + (i + 0.5), "32n"));
 		} else if (Math.random() < 0.02) {
-			notes.push(new Note(72, "0:0:" + i, "64n"));
-			notes.push(new Note(72, "0:0:" + (i + 0.25), "64n"));
-			notes.push(new Note(72, "0:0:" + (i + 0.5), "64n"));
-			notes.push(new Note(72, "0:0:" + (i + 0.75), "64n"));
+			notes.push(new Note(hihatNum, "0:0:" + i, "64n"));
+			notes.push(new Note(hihatNum, "0:0:" + (i + 0.25), "64n"));
+			notes.push(new Note(hihatNum, "0:0:" + (i + 0.5), "64n"));
+			notes.push(new Note(hihatNum, "0:0:" + (i + 0.75), "64n"));
 		} else {
-			notes.push(new Note(72, "0:0:" + i, "16n"));
+			notes.push(new Note(hihatNum, "0:0:" + i, "16n"));
 		}
 
 		if (Math.random() < 0.2 && i % 2 == 1) {
-			notes.push(new Note(61, "0:0:" + i, "16n"));
+			notes.push(new Note(snareNum, "0:0:" + i, "16n"));
 		}
 
 		if (i % 8 == 4) {
-			notes.push(new Note(59, "0:0:" + i, "16n"));
+			notes.push(new Note(clapNum, "0:0:" + i, "16n"));
 		}
 	}
 	let block = new Block("1:0:0", notes, track.name);
@@ -196,7 +198,7 @@ function genTrapDrumTrack(duration) {
 	}
 	track.blocks = blocks;
 
-	createTrackElements(track, "Drum Sampler");
+	createTrackElements(track, track.name);
 }
 
 function genTrapChords(duration, chordBlockDuration) {
@@ -244,7 +246,7 @@ function genTrapHarmony(duration, chordBlock, chordBlockDuration) {
 	var filter = new Tone.Filter(500 + Math.random() * 1000, "lowpass", -12).toMaster();
 	instrument.chain(filter, Tone.Master);
 
-	let track = new Track(instrument, [], "PolySynth", "midi");
+	let track = new Track(instrument, [], "PolySynth", "midi", Math.round(Math.random() * 127));
 	tracks.push(track);
 
 	let invertedChords = [];
@@ -293,7 +295,7 @@ function genTrap808Track(duration, chordBlock, chordBlockDuration, $808RhythmDur
 	var dist = new Tone.Distortion(0.03).toMaster();
 	instrument.chain(gain, dist);
 
-	let track = new Track(instrument, [], "808", "midi");
+	let track = new Track(instrument, [], "808", "midi", 88);
 	tracks.push(track);
 
 	let subdividedChordBlock = chordBlock.subdivide("0:0:1");
@@ -662,7 +664,51 @@ function updateTransport() {
 	updateTimelineGraphics();
 	// updateBlockGraphics();
 
+	// updateMidiFile();
+
 	console.log("updated with new maxTime = " + maxTime);
+}
+
+function updateMidiFile() {
+	let midi = new Midi();
+	midi.header.setTempo(Math.round(Tone.Transport.bpm.value));
+	let midiJSON = midi.toJSON();
+	midiJSON.header.ppq = Tone.Transport.PPQ;
+	midiJSON.header.name = "Big Flexor Song";
+	// console.log(midiJSON);
+	midi.fromJSON(midiJSON);
+	// console.log(midi);
+
+
+	// midi.header = {
+	// 	ppq: Tone.Transport.PPQ
+	// }
+	tracks.forEach(function(track) {
+		let midiTrack = midi.addTrack();
+		midiTrack.instrument.number = track.inum;
+		midiTrack.channel = Math.round(Math.random() * 16);
+		console.log(midiTrack);
+		let currentPosition = "0:0:0";
+		track.blocks.forEach(function(block) {
+			block.notes.forEach(function(note) {
+				midiTrack.addNote({
+					midi: note.pitch,
+					ticks: Tone.Time(addBBSTimes(note.position, currentPosition)).toTicks(),
+					durationTicks: Tone.Time(note.duration).toTicks(),
+					velocity: note.velocity
+				});
+			});
+			currentPosition = addBBSTimes(currentPosition, block.duration);
+		});
+	});
+
+	console.log(midi);
+
+	let data = new Buffer(midi.toArray());
+	let filename = "New Beat " + new Date().toLocaleString();
+	var blob = new Blob([data], {type: "audio/midi"});
+	fileSaver.saveAs(blob, filename);
+
 }
 
 function updateTimelineGraphics() {
