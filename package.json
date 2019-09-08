@@ -5,7 +5,7 @@
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "browserify main.js -o bundle.js",
+    "build": "browserify ./js/main.js -o bundle.js",
     "watch": "watchify ./js/main.js -o bundle.js",
     "autoprefixer": "npx postcss ./css/*.css --use autoprefixer -d build/"
   },
@@ -20,9 +20,14 @@
   },
   "homepage": "https://github.com/sibeliusy/projectbeat#readme",
   "dependencies": {
+    "@tonejs/midi": "^2.0.7",
+    "browserify-fs": "^1.0.0",
+    "file-saver": "^2.0.2",
     "jquery": "^3.4.1",
+    "midi-writer-js": "^1.7.1",
     "moment": "^2.24.0",
     "postcss-cli": "^6.1.3",
+    "tone": "^13.8.25",
     "uniq": "^1.0.1",
     "watchify": "^3.11.1"
   },

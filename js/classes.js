@@ -21,6 +21,15 @@ function Block(duration, notes = [], name = "Untitled Block") {
 		}
 		return false;
 	}
+	this.concat = function(block2) {
+		let newBlock = this.clone();
+		let oldDuration = this.duration;
+		newBlock.duration = addBBSTimes(this.duration, block2.duration);
+		block2.notes.forEach(function(note) {
+			newBlock.notes.push(new Note(note.pitch, addBBSTimes(note.position, oldDuration), note.duration, note.velocity));
+		});
+		return newBlock;
+	}
 }
 
 function Note(pitch, position, duration, velocity = 1) {
@@ -33,11 +42,13 @@ function Note(pitch, position, duration, velocity = 1) {
 	}
 }
 
-function Track(instrument, blocks = [], name = "Untitled Track", type = "notype") {
+function Track(instrument, blocks = [], name = "Untitled Track", type = "notype", inum=0) {
 	this.instrument = instrument;
 	this.blocks = blocks;
 	this.name = name;
 	this.type = type;
+
+	this.inum = inum;
 }
 
 function Chord(notes, duration) {
