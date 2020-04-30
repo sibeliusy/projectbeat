@@ -23,7 +23,7 @@
     "@tonejs/midi": "^2.0.7",
     "browserify-fs": "^1.0.0",
     "file-saver": "^2.0.2",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "midi-writer-js": "^1.7.1",
     "moment": "^2.24.0",
     "postcss-cli": "^6.1.3",
